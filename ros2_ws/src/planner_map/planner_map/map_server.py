@@ -71,7 +71,10 @@ class MapServer(Node):
         self.map_msg = OccupancyGrid()
 
         # Map metadata
-        self.map_msg.info.resolution = 1.0  # 1 meter per cell
+        if not hasattr(self, '_map_resolution'):
+            # Declare map_resolution parameter with default 1.0 (meters per cell)
+            self._map_resolution = float(self.declare_parameter('map_resolution', 1.0).value)
+        self.map_msg.info.resolution = self._map_resolution
 
         # Get bounds from OSM data
         bounds = self.osm_loader.bounds
