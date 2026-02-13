@@ -137,7 +137,10 @@ ros2 run rviz2 rviz2
 
 ## OSM File Format for Lanelet2
 
-Lanelet2 expects OSM files with specific tags for lane-level information:
+Lanelet2 expects OSM files with specific tags for lane-level information.
+
+**📖 Para una guía completa sobre cómo crear mapas personalizados, consulta:**
+**[GUIA_MAPAS_PERSONALIZADOS.md](GUIA_MAPAS_PERSONALIZADOS.md)** - Guía detallada paso a paso
 
 ### Required Tags
 - `type=lanelet`: Defines a lanelet (lane)
@@ -165,7 +168,15 @@ Lanelet2 expects OSM files with specific tags for lane-level information:
 
 ### Converting Standard OSM to Lanelet2 Format
 
-If you have a standard OSM file (roads only), you may need to convert it to Lanelet2 format or use Lanelet2's compatibility mode. Tools are available:
+If you have a standard OSM file (roads only), you may need to convert it to Lanelet2 format or use Lanelet2's compatibility mode.
+
+**📖 See [GUIA_MAPAS_PERSONALIZADOS.md](GUIA_MAPAS_PERSONALIZADOS.md) for detailed instructions on:**
+- Creating custom Lanelet2 maps from scratch
+- Converting existing OSM maps
+- Using JOSM with Lanelet2 plugin
+- Step-by-step tutorials and examples
+
+**Tools available:**
 - [Lanelet2 Converter](https://github.com/fzi-forschungszentrum-informatik/Lanelet2/tree/master/lanelet2_examples)
 - JOSM with Lanelet2 plugin
 

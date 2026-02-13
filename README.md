@@ -24,6 +24,7 @@ La interfaz web y ROS2 se comunican a través de un **nodo puente** (`ros2_web_b
 - **[CONEXION.md](CONEXION.md)** - Guía completa en español sobre cómo funciona la comunicación
 - **[CONNECTION_DIAGRAM.md](CONNECTION_DIAGRAM.md)** - Diagramas visuales del flujo de datos
 - **[LANELET2_INTEGRATION.md](LANELET2_INTEGRATION.md)** - 🆕 Guía completa de integración con Lanelet2
+- **[GUIA_MAPAS_PERSONALIZADOS.md](GUIA_MAPAS_PERSONALIZADOS.md)** - 🆕 **Guía para cargar mapas personalizados**
 - **[OSM_SUPPORT.md](OSM_SUPPORT.md)** - Guía de soporte OSM (legado)
 
 ## 🏗️ Estructura del Proyecto
@@ -209,6 +210,7 @@ docker-compose logs -f ros2 | grep bridge
    - Los mapas Lanelet2 son archivos OSM con información de carriles
    - Coloca tu mapa en `config/your_map.osm`
    - El mapa debe tener formato Lanelet2 (con tags específicos)
+   - **📖 Ver [GUIA_MAPAS_PERSONALIZADOS.md](GUIA_MAPAS_PERSONALIZADOS.md) para crear tu propio mapa**
 
 3. **Configurar el mapa**:
    ```bash
