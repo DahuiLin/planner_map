@@ -1,0 +1,32 @@
+# ROS2 Humble with Python 3
+FROM osrf/ros:humble-desktop
+
+# Set working directory
+WORKDIR /workspace
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    python3-pip \
+    python3-colcon-common-extensions \
+    ros-humble-navigation2 \
+    ros-humble-nav2-bringup \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy ROS2 workspace
+COPY ros2_ws /workspace/ros2_ws
+
+# Build ROS2 workspace
+WORKDIR /workspace/ros2_ws
+RUN . /opt/ros/humble/setup.sh && \
+    colcon build --symlink-install
+
+# Source ROS2 setup
+RUN echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc && \
+    echo "source /workspace/ros2_ws/install/setup.bash" >> ~/.bashrc
+
+# Set entrypoint
+COPY docker/ros_entrypoint.sh /ros_entrypoint.sh
+RUN chmod +x /ros_entrypoint.sh
+
+ENTRYPOINT ["/ros_entrypoint.sh"]
+CMD ["ros2", "launch", "planner_map", "planner_map.launch.py"]
