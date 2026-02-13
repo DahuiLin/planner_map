@@ -6,6 +6,7 @@ import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import PoseStamped
 from nav_msgs.msg import Path, OccupancyGrid
+from std_msgs.msg import String
 import requests
 import json
 from threading import Thread
@@ -16,13 +17,13 @@ class ROS2WebBridge(Node):
     """
     Bridge node that forwards data between ROS2 and the web interface
     """
-    
+
     def __init__(self):
         super().__init__('ros2_web_bridge')
-        
+
         # Web interface URL
         self.web_api_url = "http://web:8000/api"
-        
+
         # Subscribers
         self.map_sub = self.create_subscription(
             OccupancyGrid,
@@ -30,23 +31,30 @@ class ROS2WebBridge(Node):
             self.map_callback,
             10
         )
-        
+
         self.path_sub = self.create_subscription(
             Path,
             '/planned_path',
             self.path_callback,
             10
         )
-        
+
+        self.map_metadata_sub = self.create_subscription(
+            String,
+            '/map_metadata',
+            self.map_metadata_callback,
+            10
+        )
+
         # Publishers
         self.goal_pub = self.create_publisher(PoseStamped, '/goal_pose', 10)
-        
+
         # Timer to check for web goals
         self.timer = self.create_timer(1.0, self.check_web_goals)
-        
+
         self.last_goal = None
-        
-        self.get_logger().info('ROS2-Web bridge initialized')
+
+        self.get_logger().info('ROS2-Web bridge initialized with OSM support')
         self.get_logger().info(f'Web API URL: {self.web_api_url}')
     
     def map_callback(self, msg):
@@ -92,20 +100,39 @@ class ROS2WebBridge(Node):
                         'w': pose.pose.orientation.w
                     }
                 })
-            
+
             # Send path to web API
             response = requests.post(
                 f"{self.web_api_url}/path",
                 json={'path': path_data},
                 timeout=5.0
             )
-            
+
             if response.status_code == 200:
                 self.get_logger().debug(f'Path sent to web interface ({len(path_data)} poses)')
-            
+
         except Exception as e:
             self.get_logger().warn(f'Failed to send path to web: {e}')
-    
+
+    def map_metadata_callback(self, msg):
+        """Forward OSM map metadata to web interface"""
+        try:
+            # Parse metadata JSON
+            metadata = json.loads(msg.data)
+
+            # Send to web API
+            response = requests.post(
+                f"{self.web_api_url}/map/metadata",
+                json=metadata,
+                timeout=5.0
+            )
+
+            if response.status_code == 200:
+                self.get_logger().info('OSM map metadata sent to web interface')
+
+        except Exception as e:
+            self.get_logger().warn(f'Failed to send map metadata to web: {e}')
+
     def check_web_goals(self):
         """Check web interface for new goals and publish to ROS2"""
         try:
