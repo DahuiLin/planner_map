@@ -58,7 +58,7 @@ class PlannerNode(Node):
             self.gps_callback,
             10
         )
-        # Subscribe to spline trajectory calculation requests
+        # Subscribe to clothoid trajectory calculation requests
         self.spline_trigger_sub = self.create_subscription(
             String,
             '/calculate_spline_trajectory',
@@ -71,7 +71,7 @@ class PlannerNode(Node):
         self.current_goal = None
         self.current_path = None
         self.vehicle_gps = None  # Vehicle GPS position from /fix topic
-        self.current_spline_trajectory = None  # Spline trajectory
+        self.current_spline_trajectory = None  # Clothoid trajectory
 
         # Lanelet2 loader for routing
         self.map_loader = Lanelet2MapLoader()
@@ -232,11 +232,11 @@ class PlannerNode(Node):
         pass
 
     def calculate_spline_trajectory_callback(self, msg):
-        """Handle request to calculate spline trajectory from current path"""
-        self.get_logger().info('Received request to calculate spline trajectory')
+        """Handle request to calculate clothoid trajectory from current path"""
+        self.get_logger().info('Received request to calculate clothoid trajectory')
 
         if self.current_path is None or len(self.current_path.poses) < 2:
-            self.get_logger().warn('No valid path available for spline calculation')
+            self.get_logger().warn('No valid path available for clothoid calculation')
             return
 
         # Extract waypoints from current path
@@ -248,14 +248,14 @@ class PlannerNode(Node):
                 pose_stamped.pose.position.z
             ))
 
-        self.get_logger().info(f'Generating spline trajectory from {len(waypoints)} waypoints')
+        self.get_logger().info(f'Generating clothoid trajectory from {len(waypoints)} waypoints')
 
-        # Generate spline trajectory
+        # Generate clothoid trajectory
         try:
             trajectory_points = self.spline_generator.generate_trajectory(waypoints)
 
             if not trajectory_points:
-                self.get_logger().warn('Failed to generate spline trajectory')
+                self.get_logger().warn('Failed to generate clothoid trajectory')
                 return
 
             # Validate trajectory
@@ -283,10 +283,10 @@ class PlannerNode(Node):
 
             self.current_spline_trajectory = trajectory_msg
             self.trajectory_pub.publish(trajectory_msg)
-            self.get_logger().info(f'Published spline trajectory with {len(trajectory_points)} points')
+            self.get_logger().info(f'Published clothoid trajectory with {len(trajectory_points)} points')
 
         except Exception as e:
-            self.get_logger().error(f'Failed to calculate spline trajectory: {e}')
+            self.get_logger().error(f'Failed to calculate clothoid trajectory: {e}')
             import traceback
             self.get_logger().error(traceback.format_exc())
 

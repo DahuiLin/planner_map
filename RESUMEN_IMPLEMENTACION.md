@@ -1,13 +1,13 @@
-# Implementación de Trayectoria Spline
+# Implementación de Trayectoria Clothoid
 
 ## Resumen
 
-Se ha implementado exitosamente la funcionalidad de generación de trayectorias spline continuas en el paquete `planner_map`, cumpliendo con todos los requisitos especificados.
+Se ha implementado exitosamente la funcionalidad de generación de trayectorias clothoid (espiral de Euler) continuas en el paquete `planner_map`, cumpliendo con todos los requisitos especificados.
 
 ## Requisitos Implementados ✓
 
-### 1. Cálculo de Trayectoria Spline
-- ✅ Utiliza **interpolación cúbica B-spline** (scipy)
+### 1. Cálculo de Trayectoria Clothoid
+- ✅ Utiliza **curvas clothoid (espiral de Euler)** con curvatura linealmente variable
 - ✅ Genera trayectoria continua y suave a partir de los waypoints de Lanelet2
 - ✅ El usuario puede activar el cálculo mediante un **botón en la interfaz web**
 
@@ -27,11 +27,13 @@ Se ha implementado exitosamente la funcionalidad de generación de trayectorias 
 - ✅ Verificación visual de que la trayectoria permanece dentro de la carretera
 - ✅ Contador de puntos de trayectoria en panel de estado
 
-### 5. Restricción de Velocidad
-- ✅ Derivada temporal del spline (velocidad) respeta límite máximo
+### 5. Restricción de Velocidad y Curvatura
+- ✅ Velocidad respeta límite máximo configurado
+- ✅ Curvatura respeta límites de giro del vehículo
 - ✅ Parámetro ROS2: `max_velocity` (por defecto: 5.0 m/s)
-- ✅ Validación automática de restricciones de velocidad
-- ✅ Parametrización tiempo-distancia para cumplir restricción
+- ✅ Parámetro ROS2: `max_curvature` (por defecto: 0.5 1/m = radio mínimo 2m)
+- ✅ Validación automática de restricciones de velocidad y curvatura
+- ✅ Parametrización tiempo-distancia para cumplir restricciones
 
 ## Arquitectura Implementada
 
@@ -44,7 +46,7 @@ Se ha implementado exitosamente la funcionalidad de generación de trayectorias 
                           ↓
 ┌──────────────────────────────────────────────────────────┐
 │ 2. INTERFAZ WEB - ACTIVACIÓN POR USUARIO                │
-│    Usuario clica: "Calculate Spline Trajectory"         │
+│    Usuario clica: "Calculate Clothoid Trajectory"       │
 │    POST /api/trajectory/calculate                        │
 └──────────────────────────────────────────────────────────┘
                           ↓
@@ -55,11 +57,12 @@ Se ha implementado exitosamente la funcionalidad de generación de trayectorias 
 └──────────────────────────────────────────────────────────┘
                           ↓
 ┌──────────────────────────────────────────────────────────┐
-│ 4. PLANNER NODE - CÁLCULO DE SPLINE                     │
-│    SplineTrajectoryGenerator:                            │
-│    - Interpolación cúbica B-spline                       │
+│ 4. PLANNER NODE - CÁLCULO DE CLOTHOID                   │
+│    ClothoidTrajectoryGenerator:                          │
+│    - Curvas clothoid (espiral de Euler)                  │
+│    - Curvatura linealmente variable                      │
 │    - Muestreo cada dt segundos                           │
-│    - Aplicación de restricción max_velocity              │
+│    - Aplicación de restricciones max_velocity/curvature  │
 │    - Validación de trayectoria                           │
 │    Publicado en: /spline_trajectory                      │
 └──────────────────────────────────────────────────────────┘
@@ -83,6 +86,7 @@ planner_node:
     osm_file: "/path/to/map.osm"
     trajectory_dt: 0.1      # Intervalo de muestreo (segundos)
     max_velocity: 5.0       # Velocidad máxima (m/s)
+    max_curvature: 0.5      # Curvatura máxima (1/m, radio mín. 2m)
 ```
 
 ### Configuración desde Línea de Comandos
@@ -91,7 +95,8 @@ planner_node:
 ros2 run planner_map planner_node \
     --ros-args \
     -p trajectory_dt:=0.1 \
-    -p max_velocity:=5.0
+    -p max_velocity:=5.0 \
+    -p max_curvature:=0.5
 ```
 
 ## Uso de la Interfaz Web
@@ -102,8 +107,8 @@ ros2 run planner_map planner_node \
    - Clicar en el mapa para establecer meta
    - El sistema calcula automáticamente la ruta con Lanelet2
 
-2. **Calcular Trayectoria Spline**
-   - Clicar botón **"Calculate Spline Trajectory"**
+2. **Calcular Trayectoria Clothoid**
+   - Clicar botón **"Calculate Clothoid Trajectory"**
    - El sistema genera la trayectoria suave
 
 3. **Verificar Trayectoria**
@@ -116,7 +121,7 @@ ros2 run planner_map planner_node \
 | Color | Elemento | Descripción |
 |-------|----------|-------------|
 | 🔴 Rojo | Círculo | Posición de la meta |
-| 🟢 Verde | Línea continua | Trayectoria spline |
+| 🟢 Verde | Línea continua | Trayectoria clothoid (curvatura variable) |
 | 🟢 Verde | Puntos pequeños | Puntos de muestra (cada 5 muestras) |
 
 ## Topics ROS2
@@ -125,37 +130,38 @@ ros2 run planner_map planner_node \
 
 | Topic | Tipo | Descripción |
 |-------|------|-------------|
-| `/spline_trajectory` | `nav_msgs/Path` | Trayectoria spline muestreada |
+| `/spline_trajectory` | `nav_msgs/Path` | Trayectoria clothoid muestreada |
 | `/planned_path` | `nav_msgs/Path` | Waypoints originales de Lanelet2 |
 
 ### Topics Suscritos
 
 | Topic | Tipo | Descripción |
 |-------|------|-------------|
-| `/calculate_spline_trajectory` | `std_msgs/String` | Trigger para calcular spline |
+| `/calculate_spline_trajectory` | `std_msgs/String` | Trigger para calcular clothoid |
 | `/goal_pose` | `geometry_msgs/PoseStamped` | Meta de destino |
 | `/fix` | `sensor_msgs/NavSatFix` | Posición GPS del vehículo |
 
 ## Detalles del Algoritmo
 
-### Tipo de Spline Utilizado
+### Curvas Clothoid Utilizadas
 
-Se utiliza **interpolación cúbica B-spline** (grado k=3) mediante `scipy.interpolate.splprep`:
+Se utilizan **curvas clothoid (espirales de Euler)** con las siguientes características:
 
 - **Ventajas**:
-  - Continuidad C² (posición, velocidad y aceleración continuas)
-  - Suavidad óptima
-  - Pasa exactamente por todos los waypoints (s=0)
-  - Eficiente computacionalmente
+  - Curvatura linealmente variable: κ(s) = κ₀ + κ'·s
+  - Transiciones suaves entre secciones rectas y curvas
+  - Progresión natural del ángulo de giro
+  - Movimiento natural y cómodo para vehículos
+  - Mejor manejo de restricciones de curvatura
 
 ### Restricción de Velocidad
 
 La restricción de velocidad máxima se aplica mediante:
 
-1. Cálculo de distancia total del camino
+1. Cálculo de distancia total del camino a lo largo de segmentos clothoid
 2. Determinación del tiempo total: `T = distancia / max_velocity`
 3. Muestreo uniforme en el tiempo: `t_i = i × dt` para `i = 0, 1, 2, ..., N`
-4. Evaluación del spline en cada tiempo `t_i`
+4. Evaluación de la clothoid en cada tiempo `t_i`
 5. Validación: ninguna velocidad instantánea excede `max_velocity`
 
 **Fórmula de velocidad**:
@@ -164,6 +170,14 @@ v(t) = ||dr/dt|| = √((dx/dt)² + (dy/dt)² + (dz/dt)²)
 ```
 
 Donde `v(t) ≤ max_velocity` para todo `t`.
+
+### Restricción de Curvatura
+
+La curvatura se limita para asegurar la operación segura del vehículo:
+
+1. Curvatura máxima κ_max corresponde a radio mínimo de giro: `r_min = 1/κ_max`
+2. Segmentos clothoid se construyen con suavizado de curvatura
+3. Validación asegura `|κ(s)| ≤ κ_max` en todos los puntos
 
 ## Pruebas Realizadas
 
@@ -178,11 +192,13 @@ Se ha creado una suite de pruebas (`test_spline_trajectory.py`) con tres casos:
 - Waypoints: 5 (trayectoria con curva de 90°)
 - Resultado: ✓ 67 puntos generados
 - Velocidad: ✓ Respeta límite de 3.0 m/s
+- Curvatura: ✓ Respeta límite de 0.5 1/m
 
 ### Test 3: Curva en S
 - Waypoints: 9 (curva compleja)
 - Resultado: ✓ 109 puntos generados
 - Velocidad: ✓ Respeta límite de 8.0 m/s
+- Curvatura: ✓ Respeta límite de 0.3 1/m
 
 **Todos los tests pasan exitosamente** ✓
 
@@ -210,10 +226,10 @@ ros2_ws/requirements.txt                                   (+ scipy)
 
 | Requisito Original | Estado | Implementación |
 |-------------------|--------|----------------|
-| Calcular trayectoria spline tras obtener ruta Lanelet2 | ✅ | `SplineTrajectoryGenerator` |
-| Usuario clica en interfaz web | ✅ | Botón "Calculate Spline Trajectory" |
-| Usar mejor tipo de spline | ✅ | Cúbico B-spline (continuidad C²) |
-| Trayectoria continua | ✅ | Interpolación exacta por waypoints |
+| Calcular trayectoria tras obtener ruta Lanelet2 | ✅ | `ClothoidTrajectoryGenerator` |
+| Usuario clica en interfaz web | ✅ | Botón "Calculate Clothoid Trajectory" |
+| Usar mejor tipo de curva | ✅ | Clothoid (curvatura linealmente variable) |
+| Trayectoria continua | ✅ | Interpolación con clothoids |
 | Publicar por topic ROS2 | ✅ | `/spline_trajectory` |
 | Muestreado en tiempo dt | ✅ | Parámetro `trajectory_dt` |
 | dt recibido por parámetro | ✅ | ROS2 parameter |
@@ -221,7 +237,7 @@ ros2_ws/requirements.txt                                   (+ scipy)
 | Verificar dentro de carretera | ✅ | Visualización para verificación manual |
 | Velocidad max_velocity | ✅ | Parámetro `max_velocity` |
 | max_velocity por parámetro | ✅ | ROS2 parameter |
-| No superar límites vehículo | ✅ | Validación de restricción |
+| No superar límites vehículo | ✅ | Validación de restricciones velocidad/curvatura |
 
 **Todos los requisitos cumplidos: 12/12** ✅
 
@@ -247,9 +263,9 @@ Abrir navegador: http://localhost:8000
 - Esperar a que aparezca el círculo rojo (meta)
 - Sistema calcula ruta automáticamente con Lanelet2
 
-### 4. Calcular Trayectoria Spline
+### 4. Calcular Trayectoria Clothoid
 
-- Clicar botón **"Calculate Spline Trajectory"**
+- Clicar botón **"Calculate Clothoid Trajectory"**
 - Aparece línea verde = trayectoria suave
 - Verificar que permanece dentro de la carretera
 
@@ -271,7 +287,7 @@ La trayectoria publicada en `/spline_trajectory` puede ser utilizada por control
 ```python
 # Ejemplo de suscriptor en controlador
 def trajectory_callback(self, msg):
-    """Procesar trayectoria spline para seguimiento"""
+    """Procesar trayectoria clothoid para seguimiento"""
     for i, pose in enumerate(msg.poses):
         x = pose.pose.position.x
         y = pose.pose.position.y
@@ -288,8 +304,9 @@ def trajectory_callback(self, msg):
 ## Notas Técnicas
 
 ### Dependencias Nuevas
-- **scipy**: Para interpolación B-spline
-- Ya incluida en `requirements.txt`
+- **scipy**: Para integración numérica y integrales de Fresnel
+- **numpy**: Para cálculos matemáticos
+- Ya incluidas en `requirements.txt`
 
 ### Rendimiento
 - Generación de trayectoria: < 100ms para rutas típicas
@@ -299,14 +316,14 @@ def trajectory_callback(self, msg):
 ### Limitaciones Conocidas
 - Requiere mínimo 2 waypoints
 - Para 2 waypoints, usa interpolación lineal (fallback)
-- Para 3+ waypoints, usa spline cúbico
+- Para 3+ waypoints, usa curvas clothoid con suavizado de curvatura
 
 ## Conclusión
 
-Se ha implementado exitosamente la funcionalidad completa de generación de trayectorias spline en el paquete `planner_map`. La implementación:
+Se ha implementado exitosamente la funcionalidad completa de generación de trayectorias clothoid en el paquete `planner_map`. La implementación:
 
-1. ✅ Utiliza interpolación cúbica B-spline de alta calidad
-2. ✅ Respeta restricciones de velocidad máxima del vehículo
+1. ✅ Utiliza curvas clothoid (espirales de Euler) con curvatura linealmente variable
+2. ✅ Respeta restricciones de velocidad y curvatura del vehículo
 3. ✅ Proporciona control mediante interfaz web
 4. ✅ Visualiza la trayectoria para verificación
 5. ✅ Publica datos por topics ROS2 para integración

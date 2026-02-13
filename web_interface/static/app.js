@@ -85,7 +85,7 @@ function handleWebSocketMessage(message) {
             fetchMap();
             break;
         case 'trajectory':
-            addLog('Spline trajectory updated via WebSocket', 'success');
+            addLog('Clothoid trajectory updated via WebSocket', 'success');
             fetchTrajectory();
             break;
         case 'pong':
@@ -188,11 +188,11 @@ async function calculateSplineTrajectory() {
         const data = await response.json();
 
         if (data.status === 'success') {
-            addLog('Spline trajectory calculation triggered', 'success');
+            addLog('Clothoid trajectory calculation triggered', 'success');
         }
     } catch (error) {
-        console.error('Error triggering spline calculation:', error);
-        addLog('Error triggering spline calculation', 'error');
+        console.error('Error triggering clothoid calculation:', error);
+        addLog('Error triggering clothoid calculation', 'error');
     }
 }
 
@@ -241,7 +241,7 @@ function drawMap() {
         ctx.stroke();
     }
 
-    // Draw spline trajectory if available
+    // Draw clothoid trajectory if available
     if (currentTrajectory && currentTrajectory.length > 1) {
         ctx.strokeStyle = '#00ff00';  // Green for trajectory
         ctx.lineWidth = 3;

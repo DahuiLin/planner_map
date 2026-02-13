@@ -144,7 +144,7 @@ class ROS2WebBridge(Node):
             self.get_logger().warn(f'Failed to send map metadata to web: {e}')
 
     def spline_trajectory_callback(self, msg):
-        """Forward spline trajectory updates to web interface"""
+        """Forward clothoid trajectory updates to web interface"""
         try:
             # Convert trajectory to JSON-serializable format
             trajectory_data = []
@@ -171,10 +171,10 @@ class ROS2WebBridge(Node):
             )
 
             if response.status_code == 200:
-                self.get_logger().info(f'Spline trajectory sent to web interface ({len(trajectory_data)} points)')
+                self.get_logger().info(f'Clothoid trajectory sent to web interface ({len(trajectory_data)} points)')
 
         except Exception as e:
-            self.get_logger().warn(f'Failed to send spline trajectory to web: {e}')
+            self.get_logger().warn(f'Failed to send clothoid trajectory to web: {e}')
 
     def check_web_goals(self):
         """Check web interface for new goals and publish to ROS2"""
@@ -233,9 +233,9 @@ class ROS2WebBridge(Node):
             self.get_logger().warn(f'Error checking web goals: {e}')
 
     def check_spline_trigger(self):
-        """Check web interface for spline calculation trigger and publish to ROS2"""
+        """Check web interface for clothoid calculation trigger and publish to ROS2"""
         try:
-            # Poll the web API for spline calculation trigger
+            # Poll the web API for clothoid calculation trigger
             response = requests.get(
                 f"{self.web_api_url}/trajectory/trigger",
                 timeout=2.0
@@ -257,13 +257,13 @@ class ROS2WebBridge(Node):
                         trigger_msg.data = 'calculate'
                         self.spline_trigger_pub.publish(trigger_msg)
 
-                        self.get_logger().info('Published spline calculation trigger from web')
+                        self.get_logger().info('Published clothoid calculation trigger from web')
 
         except requests.exceptions.RequestException:
             # Don't log timeouts to avoid spam
             pass
         except Exception as e:
-            self.get_logger().warn(f'Error checking spline trigger: {e}')
+            self.get_logger().warn(f'Error checking clothoid trigger: {e}')
 
 
 def main(args=None):
