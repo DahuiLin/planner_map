@@ -1,6 +1,6 @@
-# Planner Map - ROS2 + FastAPI + Docker + OSM Support
+# Planner Map - ROS2 + FastAPI + Docker + Lanelet2
 
-Sistema de planificación y mapeo integrado con ROS2, interfaz web FastAPI, soporte para mapas OpenStreetMap (OSM) y despliegue automatizado con Docker Compose.
+Sistema de planificación y mapeo integrado con ROS2, interfaz web FastAPI, soporte para mapas Lanelet2 y despliegue automatizado con Docker Compose.
 
 ## 📋 Descripción
 
@@ -9,8 +9,9 @@ Este proyecto combina:
 - **FastAPI**: Interfaz web moderna para visualización y control
 - **Docker Compose**: Despliegue automatizado de todos los servicios
 - **ROS2-Web Bridge**: Comunicación bidireccional entre ROS2 y la interfaz web
-- **🗺️ OSM Support**: Carga mapas OpenStreetMap (.osm) y planifica rutas en redes viales reales
-- **🚗 Car Navigation**: Encuentra las rutas más cortas para coches usando algoritmos de grafos
+- **🗺️ Lanelet2**: Biblioteca avanzada para mapas a nivel de carril y enrutamiento
+- **🚗 Car Navigation**: Navegación con reglas de tráfico y enrutamiento inteligente
+- **📡 GPS Integration**: Posición del vehículo desde topic `/fix` (NavSatFix)
 
 ## 🔗 ¿Cómo está Conectado?
 
@@ -22,7 +23,9 @@ La interfaz web y ROS2 se comunican a través de un **nodo puente** (`ros2_web_b
 **📖 Documentación detallada:**
 - **[CONEXION.md](CONEXION.md)** - Guía completa en español sobre cómo funciona la comunicación
 - **[CONNECTION_DIAGRAM.md](CONNECTION_DIAGRAM.md)** - Diagramas visuales del flujo de datos
-- **[OSM_SUPPORT.md](OSM_SUPPORT.md)** - 🆕 Guía completa de soporte OSM y navegación vial
+- **[LANELET2_INTEGRATION.md](LANELET2_INTEGRATION.md)** - 🆕 Guía completa de integración con Lanelet2
+- **[GUIA_MAPAS_PERSONALIZADOS.md](GUIA_MAPAS_PERSONALIZADOS.md)** - 🆕 **Guía para cargar mapas personalizados**
+- **[OSM_SUPPORT.md](OSM_SUPPORT.md)** - Guía de soporte OSM (legado)
 
 ## 🏗️ Estructura del Proyecto
 
@@ -164,9 +167,10 @@ docker-compose logs -f ros2 | grep bridge
 ### ROS2
 - ✅ Nodo de planificación de rutas
 - ✅ Servidor de mapas con OccupancyGrid
-- ✅ **🆕 Soporte para mapas OSM (.osm)**
-- ✅ **🆕 Cargador OSM con osmium y networkx**
-- ✅ **🆕 Algoritmo de ruta más corta (Dijkstra)**
+- ✅ **🆕 Soporte para Lanelet2 - mapas a nivel de carril**
+- ✅ **🆕 Integración GPS vía topic /fix (sensor_msgs/NavSatFix)**
+- ✅ **🆕 Enrutamiento con reglas de tráfico (Lanelet2 routing)**
+- ✅ **🆕 Posición inicial del vehículo desde GPS**
 - ✅ Publishers y Subscribers configurados
 - ✅ Launch files para inicio automático
 - ✅ Parámetros configurables
@@ -187,39 +191,48 @@ docker-compose logs -f ros2 | grep bridge
 - ✅ Volumes para desarrollo en caliente
 - ✅ Restart automático
 
-## 🗺️ Usando Mapas OSM
+## 🗺️ Usando Lanelet2
 
-### Inicio Rápido con OSM
+### Inicio Rápido con Lanelet2
 
-1. **Usar el mapa de muestra**:
+1. **Preparar posición GPS del vehículo**:
    ```bash
-   # Un mapa OSM de muestra está incluido
-   docker-compose up --build
+   # Publicar posición GPS de prueba
+   ros2 topic pub /fix sensor_msgs/NavSatFix "{
+     latitude: 48.98403,
+     longitude: 8.39014,
+     altitude: 115.0,
+     status: {status: 0, service: 1}
+   }" --once
    ```
 
-2. **Descargar tu propio mapa OSM**:
-   - Visita [openstreetmap.org](https://www.openstreetmap.org/)
-   - Navega a tu área de interés
-   - Click en "Export" → Descarga el archivo .osm
-   - Coloca el archivo en `config/your_map.osm`
+2. **Usar un mapa Lanelet2**:
+   - Los mapas Lanelet2 son archivos OSM con información de carriles
+   - Coloca tu mapa en `config/your_map.osm`
+   - El mapa debe tener formato Lanelet2 (con tags específicos)
+   - **📖 Ver [GUIA_MAPAS_PERSONALIZADOS.md](GUIA_MAPAS_PERSONALIZADOS.md) para crear tu propio mapa**
 
-3. **Configurar el mapa personalizado**:
+3. **Configurar el mapa**:
    ```bash
-   # Edita docker-compose.yml para especificar tu archivo OSM
+   # Edita docker-compose.yml para especificar tu archivo
    ros2 launch planner_map planner_map.launch.py \
      osm_file:=/workspace/config/your_map.osm
    ```
 
-### Características OSM
+4. **Seleccionar destino**:
+   - Usa la interfaz web para seleccionar el punto final
+   - El sistema calculará la ruta desde la posición GPS del vehículo
 
-- 🗺️ Carga mapas reales de OpenStreetMap
-- 🚗 Planificación de rutas en redes viales
-- 🛣️ Soporta diferentes tipos de carreteras (autopista, primaria, residencial, etc.)
-- 📏 Encuentra la ruta más corta usando algoritmo de Dijkstra
-- 🌐 Conversión automática entre coordenadas lat/lon y XY locales
-- 📊 Visualización de red vial en la interfaz web
+### Características Lanelet2
 
-**Ver [OSM_SUPPORT.md](OSM_SUPPORT.md) para documentación completa**
+- 🗺️ Mapas a nivel de carril con información detallada
+- 🚗 Reglas de tráfico integradas (alemanas por defecto)
+- 🛣️ Soporte para elementos regulatorios (semáforos, límites de velocidad)
+- 📏 Enrutamiento inteligente considerando reglas de tráfico
+- 🌐 Conversión automática GPS ↔ coordenadas locales
+- 📊 Visualización de red de carriles en interfaz web
+
+**Ver [LANELET2_INTEGRATION.md](LANELET2_INTEGRATION.md) para documentación completa**
 
 ### Variables de Entorno
 
@@ -248,6 +261,8 @@ planner_node:
 - `/goal_pose` (geometry_msgs/PoseStamped): Objetivo de navegación
 - `/planned_path` (nav_msgs/Path): Ruta planificada
 - `/cmd_vel` (geometry_msgs/Twist): Comandos de velocidad
+- `/fix` (sensor_msgs/NavSatFix): **🆕 Posición GPS del vehículo (requerido para planificación)**
+- `/map_metadata` (std_msgs/String): Metadatos del mapa Lanelet2
 
 ## 🐛 Troubleshooting
 

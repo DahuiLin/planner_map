@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Map Server Node - Manages and publishes OSM map data
+Map Server Node - Manages and publishes Lanelet2 map data
 """
 import rclpy
 from rclpy.node import Node
@@ -10,12 +10,12 @@ from geometry_msgs.msg import Pose
 import numpy as np
 import json
 import os
-from .osm_map_loader import OSMMapLoader
+from .lanelet2_map_loader import Lanelet2MapLoader
 
 
 class MapServer(Node):
     """
-    ROS2 node for serving OSM map data
+    ROS2 node for serving Lanelet2 map data
     """
 
     def __init__(self):
@@ -29,8 +29,8 @@ class MapServer(Node):
         self.map_pub = self.create_publisher(OccupancyGrid, '/map', 10)
         self.map_metadata_pub = self.create_publisher(String, '/map_metadata', 10)
 
-        # OSM Map Loader
-        self.osm_loader = OSMMapLoader()
+        # Lanelet2 Map Loader
+        self.map_loader = Lanelet2MapLoader()
         self.map_loaded = False
 
         # Load OSM file
@@ -46,28 +46,30 @@ class MapServer(Node):
         publish_rate = self.get_parameter('publish_rate').value
         self.timer = self.create_timer(1.0 / publish_rate, self.publish_map)
 
-        self.get_logger().info('Map server initialized')
+        self.get_logger().info('Map server initialized with Lanelet2')
 
     def load_osm_map(self, osm_file_path: str):
-        """Load OSM map from file"""
+        """Load OSM map from file using Lanelet2"""
         try:
-            self.get_logger().info(f'Loading OSM map from: {osm_file_path}')
-            num_nodes, num_ways = self.osm_loader.load_osm_file(osm_file_path)
-            self.get_logger().info(f'Loaded {num_nodes} nodes and {num_ways} ways')
+            self.get_logger().info(f'Loading Lanelet2 map from: {osm_file_path}')
+            num_lanelets, num_areas = self.map_loader.load_osm_file(osm_file_path)
+            self.get_logger().info(f'Loaded {num_lanelets} lanelets and {num_areas} areas')
 
-            # Convert OSM data to occupancy grid for ROS2
-            self.create_occupancy_grid_from_osm()
+            # Convert Lanelet2 data to occupancy grid for ROS2
+            self.create_occupancy_grid_from_lanelet2()
             self.map_loaded = True
 
             # Publish metadata
             self.publish_map_metadata()
 
         except Exception as e:
-            self.get_logger().error(f'Failed to load OSM map: {e}')
+            self.get_logger().error(f'Failed to load Lanelet2 map: {e}')
+            import traceback
+            self.get_logger().error(traceback.format_exc())
             self.initialize_default_map()
 
-    def create_occupancy_grid_from_osm(self):
-        """Create an occupancy grid from OSM road network"""
+    def create_occupancy_grid_from_lanelet2(self):
+        """Create an occupancy grid from Lanelet2 map"""
         self.map_msg = OccupancyGrid()
 
         # Map metadata
@@ -76,16 +78,14 @@ class MapServer(Node):
             self._map_resolution = float(self.declare_parameter('map_resolution', 1.0).value)
         self.map_msg.info.resolution = self._map_resolution
 
-        # Get bounds from OSM data
-        bounds = self.osm_loader.bounds
+        # Get bounds from Lanelet2 data
+        bounds = self.map_loader.bounds
         if bounds:
-            # Calculate map dimensions in local coordinates
-            min_lat, max_lat = bounds['min_lat'], bounds['max_lat']
-            min_lon, max_lon = bounds['min_lon'], bounds['max_lon']
-
-            # Convert corners to XY
-            min_x, min_y = self.osm_loader.latlon_to_xy(min_lat, min_lon)
-            max_x, max_y = self.osm_loader.latlon_to_xy(max_lat, max_lon)
+            # Get bounds in XY coordinates
+            min_x = bounds['min_x']
+            max_x = bounds['max_x']
+            min_y = bounds['min_y']
+            max_y = bounds['max_y']
 
             # Add padding
             padding = 50  # meters
@@ -108,23 +108,23 @@ class MapServer(Node):
             # Create grid (unknown space by default)
             grid = np.full((height, width), -1, dtype=np.int8)
 
-            # Mark roads as free space (0)
-            ways = self.osm_loader.get_ways_as_linestrings()
-            for way in ways:
-                coords = way['coordinates']
+            # Mark lanelets as free space (0)
+            lanelets = self.map_loader.get_lanelets_as_linestrings()
+            for lanelet in lanelets:
+                coords = lanelet['coordinates']
                 for i in range(len(coords) - 1):
                     lon1, lat1 = coords[i]
                     lon2, lat2 = coords[i + 1]
 
-                    x1, y1 = self.osm_loader.latlon_to_xy(lat1, lon1)
-                    x2, y2 = self.osm_loader.latlon_to_xy(lat2, lon2)
+                    x1, y1 = self.map_loader.latlon_to_xy(lat1, lon1)
+                    x2, y2 = self.map_loader.latlon_to_xy(lat2, lon2)
 
                     # Rasterize line
                     self._draw_line(grid, x1, y1, x2, y2, min_x, min_y)
 
             self.map_msg.data = grid.flatten().tolist()
 
-            self.get_logger().info(f'Created occupancy grid: {width}x{height}')
+            self.get_logger().info(f'Created occupancy grid from Lanelet2: {width}x{height}')
         else:
             self.initialize_default_map()
 
@@ -192,23 +192,27 @@ class MapServer(Node):
         self.map_pub.publish(self.map_msg)
 
     def publish_map_metadata(self):
-        """Publish map metadata including OSM-specific information"""
+        """Publish map metadata including Lanelet2-specific information"""
         if not self.map_loaded:
             return
 
+        map_info = self.map_loader.get_map_info()
+        lanelets = self.map_loader.get_lanelets_as_linestrings()[:100]  # Limit to first 100 for size
+
         metadata = {
-            'type': 'osm',
-            'bounds': self.osm_loader.bounds,
-            'num_nodes': len(self.osm_loader.nodes),
-            'num_ways': len(self.osm_loader.ways),
-            'ways': self.osm_loader.get_ways_as_linestrings()[:100]  # Limit to first 100 for size
+            'type': 'lanelet2',
+            'bounds': map_info.get('bounds'),
+            'num_lanelets': map_info.get('num_lanelets', 0),
+            'num_areas': map_info.get('num_areas', 0),
+            'num_regulatory_elements': map_info.get('num_regulatory_elements', 0),
+            'lanelets': lanelets
         }
 
         msg = String()
         msg.data = json.dumps(metadata)
         self.map_metadata_pub.publish(msg)
 
-        self.get_logger().info('Published map metadata')
+        self.get_logger().info('Published Lanelet2 map metadata')
 
 
 def main(args=None):
