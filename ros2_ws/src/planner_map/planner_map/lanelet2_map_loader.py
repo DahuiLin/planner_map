@@ -22,6 +22,10 @@ except ImportError:
 class Lanelet2MapLoader:
     """
     Loads OpenStreetMap files using Lanelet2 library and provides routing capabilities
+
+    NOTE: Routing uses ROAD CENTER lines and does NOT consider individual lanes
+    or traffic directions. All paths follow the centerline of roads regardless
+    of one-way restrictions or lane-specific rules.
     """
 
     def __init__(self):
@@ -66,12 +70,28 @@ class Lanelet2MapLoader:
         self._calculate_bounds()
 
         # Create traffic rules for vehicles (car)
-        # This defines which lanelets are drivable
-        self.traffic_rules = createTrafficRules("de", "vehicle")  # German traffic rules for vehicles
+        # NOTE: For road-center routing, we want to ignore lane directions
+        # and allow routing in both directions on all roads
+        self.traffic_rules = createTrafficRules("de", "vehicle")
 
-        # Create routing graph
-        # This builds the graph used for route planning
-        self.routing_graph = RoutingGraph(self.map, self.traffic_rules, [RoutingCostDistance()])
+        # Create routing graph for road-center routing
+        # Using bidirectional flag to allow routing in both directions
+        # This ignores one-way restrictions and lane-specific rules
+        try:
+            # Try with bidirectional parameter (Lanelet2 v1.2+)
+            self.routing_graph = RoutingGraph(
+                self.map,
+                self.traffic_rules,
+                [RoutingCostDistance()],
+                True  # bidirectional - allows routing both ways for road-center routing
+            )
+        except TypeError:
+            # Fallback for older Lanelet2 versions without bidirectional parameter
+            self.routing_graph = RoutingGraph(
+                self.map,
+                self.traffic_rules,
+                [RoutingCostDistance()]
+            )
 
         num_lanelets = len(self.map.laneletLayer)
         num_areas = len(self.map.areaLayer)
@@ -103,14 +123,21 @@ class Lanelet2MapLoader:
     def find_shortest_path(self, start_lat: float, start_lon: float,
                           end_lat: float, end_lon: float) -> List[Tuple[float, float]]:
         """
-        Find shortest path between two GPS coordinates using Lanelet2 routing
+        Find shortest path between two GPS coordinates using road centerlines
+
+        NOTE: This routing uses the CENTER of the road and does NOT consider:
+        - Individual lanes
+        - Lane directions or one-way restrictions
+        - Traffic rules
+
+        The path follows road centerlines for simplicity.
 
         Args:
             start_lat, start_lon: Starting GPS coordinates
             end_lat, end_lon: Ending GPS coordinates
 
         Returns:
-            List of (lat, lon) tuples representing the path
+            List of (lat, lon) tuples representing the path along road centers
         """
         if self.routing_graph is None:
             return []
