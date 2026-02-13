@@ -25,6 +25,7 @@ class PlannerNode(Node):
         self.declare_parameter('osm_file', '')
         self.declare_parameter('trajectory_dt', 0.1)  # Sampling time for trajectory (default 0.1s = 10Hz)
         self.declare_parameter('max_velocity', 5.0)   # Maximum velocity in m/s (default 5.0 m/s)
+        self.declare_parameter('max_curvature', 0.5)  # Maximum curvature in 1/m (default 0.5 = 2m radius)
 
         # Publishers
         self.path_pub = self.create_publisher(Path, '/planned_path', 10)
@@ -76,10 +77,11 @@ class PlannerNode(Node):
         self.map_loader = Lanelet2MapLoader()
         self.map_loaded = False
 
-        # Spline trajectory generator
+        # Spline trajectory generator (now using clothoid curves)
         dt = self.get_parameter('trajectory_dt').value
         max_vel = self.get_parameter('max_velocity').value
-        self.spline_generator = SplineTrajectoryGenerator(dt=dt, max_velocity=max_vel)
+        max_curv = self.get_parameter('max_curvature').value
+        self.spline_generator = SplineTrajectoryGenerator(dt=dt, max_velocity=max_vel, max_curvature=max_curv)
 
         # Load OSM file if specified
         osm_file = self.get_parameter('osm_file').value
