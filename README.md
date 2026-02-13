@@ -1,5 +1,8 @@
 # Planner Map - ROS2 + FastAPI + Docker + Lanelet2
 
+![CI - Build and Test](https://github.com/DahuiLin/planner_map/workflows/CI%20-%20Build%20and%20Test/badge.svg)
+![Deploy to Production](https://github.com/DahuiLin/planner_map/workflows/Deploy%20to%20Production/badge.svg)
+
 Sistema de planificación y mapeo integrado con ROS2, interfaz web FastAPI, soporte para mapas Lanelet2 y despliegue automatizado con Docker Compose.
 
 ## 📋 Descripción
@@ -26,6 +29,7 @@ La interfaz web y ROS2 se comunican a través de un **nodo puente** (`ros2_web_b
 - **[LANELET2_INTEGRATION.md](LANELET2_INTEGRATION.md)** - 🆕 Guía completa de integración con Lanelet2
 - **[GUIA_MAPAS_PERSONALIZADOS.md](GUIA_MAPAS_PERSONALIZADOS.md)** - 🆕 **Guía para cargar mapas personalizados**
 - **[OSM_SUPPORT.md](OSM_SUPPORT.md)** - Guía de soporte OSM (legado)
+- **[CI_CD.md](CI_CD.md)** - 🆕 **Documentación de CI/CD y deployment**
 
 ## 🏗️ Estructura del Proyecto
 
@@ -295,6 +299,42 @@ docker-compose logs web
 # Seguir logs en tiempo real
 docker-compose logs -f
 ```
+
+## 🚀 CI/CD
+
+Este proyecto incluye flujos de trabajo automatizados de CI/CD usando GitHub Actions.
+
+### Integración Continua
+
+Cada push y pull request ejecuta automáticamente:
+- ✅ Build de imágenes Docker (ROS2 y Web)
+- ✅ Validación de docker-compose.yml
+- ✅ Health checks de servicios
+- ✅ Tests de API endpoints
+- ✅ Verificación de nodos ROS2
+- ✅ Tests de integración end-to-end
+- ✅ Análisis de código con linters
+
+### Deployment
+
+Deployment automático mediante:
+- 🏷️ **Tags de versión**: `git tag v1.0.0 && git push origin v1.0.0`
+- 🚀 **Manual dispatch**: Desde la pestaña Actions en GitHub
+
+### Tests Locales
+
+```bash
+# Ejecutar tests de integración
+python3 test_integration.py
+
+# Verificar configuración
+docker compose config
+
+# Ver estado de health checks
+docker compose ps
+```
+
+**📖 Ver [CI_CD.md](CI_CD.md) para documentación completa de CI/CD**
 
 ## 📝 Licencia
 
