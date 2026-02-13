@@ -64,7 +64,7 @@ class ROS2WebBridge(Node):
             response = requests.post(
                 f"{self.web_api_url}/map",
                 json=map_data,
-                timeout=1.0
+                timeout=5.0  # Longer timeout to prevent frequent failures
             )
             
             if response.status_code == 200:

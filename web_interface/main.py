@@ -8,11 +8,24 @@ from fastapi.responses import HTMLResponse
 from fastapi import Request
 from pydantic import BaseModel
 from typing import List, Optional
+from contextlib import asynccontextmanager
 import json
 import asyncio
 from datetime import datetime
 
-app = FastAPI(title="Planner Map Web Interface", version="0.1.0")
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Lifespan context manager for startup and shutdown"""
+    # Startup
+    print("FastAPI server started")
+    print("Web interface available at http://localhost:8000")
+    yield
+    # Shutdown
+    print("FastAPI server shutting down")
+
+
+app = FastAPI(title="Planner Map Web Interface", version="0.1.0", lifespan=lifespan)
 
 # Mount static files and templates
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -64,7 +77,8 @@ class ConnectionManager:
         for connection in self.active_connections:
             try:
                 await connection.send_text(message)
-            except:
+            except Exception as e:
+                # Connection might be closed, log and skip
                 pass
 
 manager = ConnectionManager()
@@ -140,19 +154,10 @@ async def websocket_endpoint(websocket: WebSocket):
             if message.get("type") == "ping":
                 await websocket.send_text(json.dumps({"type": "pong"}))
             
-    except WebSocketDisconnect:
+    except KeyboardInterrupt:
+        pass
+    finally:
         manager.disconnect(websocket)
-
-@app.on_event("startup")
-async def startup_event():
-    """Initialize on startup"""
-    print("FastAPI server started")
-    print("Web interface available at http://localhost:8000")
-
-@app.on_event("shutdown")
-async def shutdown_event():
-    """Cleanup on shutdown"""
-    print("FastAPI server shutting down")
 
 if __name__ == "__main__":
     import uvicorn
