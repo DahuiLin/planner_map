@@ -119,9 +119,9 @@ The web interface has been updated to work with OSM maps:
 
 ### New Endpoints for OSM
 
-- `GET /api/map/osm`: Get OSM-specific map data
-  - Returns road network as GeoJSON
-  - Includes node positions and way geometries
+- `GET /api/map/osm`: Get OSM-derived road network data
+  - Returns road network metadata in the internal JSON format (not GeoJSON)
+  - Structure matches data posted to `/api/map/metadata` (includes custom `ways` list, node positions, and way geometries)
 
 - `POST /api/route`: Request route planning
   ```json
