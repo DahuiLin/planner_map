@@ -121,10 +121,34 @@ async def set_goal(goal: GoalRequest):
     
     return {"status": "success", "goal": goal}
 
+@app.get("/api/goal/latest")
+async def get_latest_goal():
+    """Get the latest goal (for ROS2 bridge to poll)"""
+    if current_goal is None:
+        return {"goal": None}
+    return {"goal": current_goal.dict(), "timestamp": datetime.now().isoformat()}
+
 @app.get("/api/path")
 async def get_path():
     """Get current planned path"""
     return {"path": current_path}
+
+@app.post("/api/path")
+async def update_path(path_data: dict):
+    """Update the current path (called by ROS2 bridge)"""
+    global current_path
+    
+    # Extract path poses from the request
+    if "path" in path_data:
+        current_path = path_data["path"]
+    
+    # Broadcast to WebSocket clients
+    await manager.broadcast(json.dumps({
+        "type": "path",
+        "data": {"path": current_path, "length": len(current_path)}
+    }))
+    
+    return {"status": "success", "path_length": len(current_path)}
 
 @app.post("/api/map")
 async def update_map(map_data: MapData):

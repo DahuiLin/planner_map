@@ -24,4 +24,13 @@ def generate_launch_description():
                 {'use_sim_time': False}
             ]
         ),
+        Node(
+            package='planner_map',
+            executable='ros2_web_bridge',
+            name='ros2_web_bridge',
+            output='screen',
+            parameters=[
+                {'use_sim_time': False}
+            ]
+        ),
     ])

@@ -93,17 +93,74 @@ class ROS2WebBridge(Node):
                     }
                 })
             
-            # Note: You might want to add a path endpoint in the web API
-            self.get_logger().debug(f'Path received with {len(path_data)} poses')
+            # Send path to web API
+            response = requests.post(
+                f"{self.web_api_url}/path",
+                json={'path': path_data},
+                timeout=5.0
+            )
+            
+            if response.status_code == 200:
+                self.get_logger().debug(f'Path sent to web interface ({len(path_data)} poses)')
             
         except Exception as e:
-            self.get_logger().warn(f'Failed to process path: {e}')
+            self.get_logger().warn(f'Failed to send path to web: {e}')
     
     def check_web_goals(self):
         """Check web interface for new goals and publish to ROS2"""
-        # This is a simplified implementation
-        # In production, you'd want to use WebSocket or a proper messaging system
-        pass
+        try:
+            # Poll the web API for new goals
+            response = requests.get(
+                f"{self.web_api_url}/goal/latest",
+                timeout=2.0
+            )
+            
+            if response.status_code == 200:
+                data = response.json()
+                
+                # Check if there's a new goal
+                if data.get('goal') is not None:
+                    goal_data = data['goal']
+                    
+                    # Check if it's a new goal (different from last one)
+                    goal_str = json.dumps(goal_data)
+                    if goal_str != self.last_goal:
+                        self.last_goal = goal_str
+                        
+                        # Create ROS2 PoseStamped message
+                        goal_msg = PoseStamped()
+                        goal_msg.header.frame_id = 'map'
+                        goal_msg.header.stamp = self.get_clock().now().to_msg()
+                        
+                        # Set position
+                        pose_data = goal_data['pose']
+                        goal_msg.pose.position.x = pose_data['position']['x']
+                        goal_msg.pose.position.y = pose_data['position']['y']
+                        goal_msg.pose.position.z = pose_data['position']['z']
+                        
+                        # Set orientation
+                        goal_msg.pose.orientation.x = pose_data['orientation']['x']
+                        goal_msg.pose.orientation.y = pose_data['orientation']['y']
+                        goal_msg.pose.orientation.z = pose_data['orientation']['z']
+                        goal_msg.pose.orientation.w = pose_data['orientation']['w']
+                        
+                        # Publish to ROS2
+                        self.goal_pub.publish(goal_msg)
+                        self.get_logger().info(
+                            f'Published new goal from web: '
+                            f'x={goal_msg.pose.position.x:.2f}, '
+                            f'y={goal_msg.pose.position.y:.2f}'
+                        )
+                        
+        except requests.exceptions.RequestException as e:
+            # Don't log every timeout, only every 10th to avoid spam
+            if not hasattr(self, '_error_count'):
+                self._error_count = 0
+            self._error_count += 1
+            if self._error_count % 10 == 0:
+                self.get_logger().debug(f'Could not reach web API: {e}')
+        except Exception as e:
+            self.get_logger().warn(f'Error checking web goals: {e}')
 
 
 def main(args=None):
