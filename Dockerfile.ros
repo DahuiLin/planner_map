@@ -15,6 +15,9 @@ RUN apt-get update && apt-get install -y \
 # Copy ROS2 workspace
 COPY ros2_ws /workspace/ros2_ws
 
+# Install Python dependencies
+RUN pip3 install --no-cache-dir -r /workspace/ros2_ws/requirements.txt
+
 # Build ROS2 workspace
 WORKDIR /workspace/ros2_ws
 RUN . /opt/ros/humble/setup.sh && \
