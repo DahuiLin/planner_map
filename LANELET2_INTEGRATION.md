@@ -13,7 +13,7 @@ This project has been migrated from using OSM + NetworkX to **Lanelet2** for map
 - Basic road-level routing without lane information
 
 ### New Implementation (Lanelet2)
-- Uses Lanelet2 library for parsing and routing
+- **Lanelet2 reads OSM files directly** using its native parser
 - Lane-level map representation with traffic rules
 - Built-in routing graph with traffic rule awareness
 - Better support for regulatory elements (traffic lights, speed limits, etc.)
@@ -23,10 +23,10 @@ This project has been migrated from using OSM + NetworkX to **Lanelet2** for map
 
 ### 1. Lanelet2MapLoader (`lanelet2_map_loader.py`)
 
-This is the new map loader that replaces `osm_map_loader.py`.
+This is the new map loader that uses Lanelet2's built-in OSM parser.
 
 **Main Features:**
-- Loads OSM files using Lanelet2's native parser
+- **Reads OSM files directly** using Lanelet2's `lanelet2.io.load()` function
 - Creates routing graph with traffic rules (German vehicle rules by default)
 - Provides coordinate conversion (GPS ↔ local XY)
 - Finds shortest paths using Lanelet2's routing algorithms
@@ -244,15 +244,15 @@ This can be configured in `lanelet2_map_loader.py` if needed for different regio
 
 ### For Developers
 
-If you're migrating from the old OSM-based system:
+The old OSM loader has been removed. Lanelet2 reads OSM files directly:
 
-1. **Replace imports:**
+1. **Use Lanelet2MapLoader:**
    ```python
-   # Old
-   from .osm_map_loader import OSMMapLoader
-
-   # New
    from .lanelet2_map_loader import Lanelet2MapLoader
+
+   # Lanelet2 loads OSM files directly with its native parser
+   loader = Lanelet2MapLoader()
+   loader.load_osm_file('/path/to/map.osm')
    ```
 
 2. **Update variable names:**
@@ -272,9 +272,13 @@ If you're migrating from the old OSM-based system:
    start_lon = self.vehicle_gps.longitude
    ```
 
-### Backwards Compatibility
+### OSM File Support
 
-The old `osm_map_loader.py` file is kept for reference but is no longer used. All nodes now use Lanelet2.
+**Lanelet2 reads OSM files directly** using its built-in parser:
+- The old `osm_map_loader.py` has been removed
+- Lanelet2's native parser (`lanelet2.io.load()`) handles OSM format
+- Maps must be in Lanelet2 format (OSM with lane-level tags)
+- Standard OSM files need conversion to Lanelet2 format
 
 ## Performance Considerations
 

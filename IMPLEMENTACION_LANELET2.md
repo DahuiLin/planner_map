@@ -8,9 +8,9 @@ Este documento resume todos los cambios implementados para migrar el sistema de 
 
 1. **`ros2_ws/src/planner_map/planner_map/lanelet2_map_loader.py`**
    - Nuevo cargador de mapas basado en Lanelet2
-   - Reemplaza completamente `osm_map_loader.py`
+   - **Lanelet2 lee archivos OSM directamente** usando su parser nativo
    - Características:
-     - Carga archivos OSM con formato Lanelet2
+     - Carga archivos OSM con formato Lanelet2 usando `lanelet2.io.load()`
      - Construye grafo de enrutamiento con reglas de tráfico
      - Encuentra rutas usando algoritmos de Lanelet2
      - Convierte coordenadas GPS ↔ XY locales
@@ -54,9 +54,12 @@ Este documento resume todos los cambios implementados para migrar el sistema de 
    - Instrucciones de uso con GPS
    - Referencias a nueva documentación
 
+### ✅ Archivos Eliminados
+
+- **`osm_map_loader.py`** - Eliminado (Lanelet2 lee OSM directamente con su parser nativo)
+
 ### ✅ Archivos Mantenidos (No Modificados)
 
-- `osm_map_loader.py` - Mantenido para referencia pero ya no se usa
 - `ros2_web_bridge.py` - Sin cambios (funciona igual con Lanelet2)
 - Dockerfile.ros - Ya contenía instalación de Lanelet2
 
@@ -184,15 +187,22 @@ ros2 topic pub /fix sensor_msgs/NavSatFix "{latitude: 48.98403, longitude: 8.390
 
 **Solución:** Verificar formato de mapa, usar JOSM con plugin Lanelet2
 
-### 4. Mapa OSM genérico no funciona
-**Solución:** Convertir a formato Lanelet2
+### 4. Lectura de archivos OSM
+**Importante:** Lanelet2 lee archivos OSM directamente con su parser nativo (`lanelet2.io.load()`).
+- No se requiere parser OSM separado
+- El antiguo `osm_map_loader.py` ha sido eliminado
+- Mapas deben estar en formato Lanelet2 (OSM con tags de carriles)
+- Mapas OSM genéricos requieren conversión
+
+**Solución para mapas OSM genéricos:** Convertir a formato Lanelet2
 - Usar herramientas de conversión Lanelet2
 - Editar con JOSM + plugin Lanelet2
 - Ver documentación oficial de Lanelet2
 
 ## Compatibilidad hacia Atrás
 
-- `osm_map_loader.py` se mantiene en el código pero **NO SE USA**
+- El archivo `osm_map_loader.py` **ha sido eliminado**
+- Lanelet2 lee archivos OSM directamente - no se necesita parser separado
 - Sistema NO es compatible con mapas OSM genéricos
 - Mapas deben convertirse a formato Lanelet2
 
