@@ -46,13 +46,23 @@ class ROS2WebBridge(Node):
             10
         )
 
+        self.spline_trajectory_sub = self.create_subscription(
+            Path,
+            '/spline_trajectory',
+            self.spline_trajectory_callback,
+            10
+        )
+
         # Publishers
         self.goal_pub = self.create_publisher(PoseStamped, '/goal_pose', 10)
+        self.spline_trigger_pub = self.create_publisher(String, '/calculate_spline_trajectory', 10)
 
         # Timer to check for web goals
         self.timer = self.create_timer(1.0, self.check_web_goals)
+        self.timer_spline = self.create_timer(1.0, self.check_spline_trigger)
 
         self.last_goal = None
+        self.last_spline_trigger = None
 
         self.get_logger().info('ROS2-Web bridge initialized with OSM support')
         self.get_logger().info(f'Web API URL: {self.web_api_url}')
@@ -133,6 +143,39 @@ class ROS2WebBridge(Node):
         except Exception as e:
             self.get_logger().warn(f'Failed to send map metadata to web: {e}')
 
+    def spline_trajectory_callback(self, msg):
+        """Forward clothoid trajectory updates to web interface"""
+        try:
+            # Convert trajectory to JSON-serializable format
+            trajectory_data = []
+            for pose in msg.poses:
+                trajectory_data.append({
+                    'position': {
+                        'x': pose.pose.position.x,
+                        'y': pose.pose.position.y,
+                        'z': pose.pose.position.z
+                    },
+                    'orientation': {
+                        'x': pose.pose.orientation.x,
+                        'y': pose.pose.orientation.y,
+                        'z': pose.pose.orientation.z,
+                        'w': pose.pose.orientation.w
+                    }
+                })
+
+            # Send trajectory to web API
+            response = requests.post(
+                f"{self.web_api_url}/trajectory",
+                json={'trajectory': trajectory_data},
+                timeout=5.0
+            )
+
+            if response.status_code == 200:
+                self.get_logger().info(f'Clothoid trajectory sent to web interface ({len(trajectory_data)} points)')
+
+        except Exception as e:
+            self.get_logger().warn(f'Failed to send clothoid trajectory to web: {e}')
+
     def check_web_goals(self):
         """Check web interface for new goals and publish to ROS2"""
         try:
@@ -188,6 +231,39 @@ class ROS2WebBridge(Node):
                 self.get_logger().debug(f'Could not reach web API: {e}')
         except Exception as e:
             self.get_logger().warn(f'Error checking web goals: {e}')
+
+    def check_spline_trigger(self):
+        """Check web interface for clothoid calculation trigger and publish to ROS2"""
+        try:
+            # Poll the web API for clothoid calculation trigger
+            response = requests.get(
+                f"{self.web_api_url}/trajectory/trigger",
+                timeout=2.0
+            )
+
+            if response.status_code == 200:
+                data = response.json()
+
+                # Check if there's a new trigger
+                if data.get('trigger') is not None and data['trigger']:
+                    trigger_str = data.get('timestamp', '')
+
+                    # Check if it's a new trigger (different from last one)
+                    if trigger_str != self.last_spline_trigger:
+                        self.last_spline_trigger = trigger_str
+
+                        # Publish trigger to ROS2
+                        trigger_msg = String()
+                        trigger_msg.data = 'calculate'
+                        self.spline_trigger_pub.publish(trigger_msg)
+
+                        self.get_logger().info('Published clothoid calculation trigger from web')
+
+        except requests.exceptions.RequestException:
+            # Don't log timeouts to avoid spam
+            pass
+        except Exception as e:
+            self.get_logger().warn(f'Error checking clothoid trigger: {e}')
 
 
 def main(args=None):

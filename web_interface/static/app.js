@@ -6,6 +6,7 @@ let reconnectInterval = null;
 let canvas, ctx;
 let mapData = null;
 let currentGoal = null;
+let currentTrajectory = null;
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
@@ -15,6 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Setup event listeners
     canvas.addEventListener('click', handleCanvasClick);
     document.getElementById('goal-form').addEventListener('submit', handleGoalSubmit);
+    document.getElementById('btn-calculate-spline').addEventListener('click', calculateSplineTrajectory);
     
     // Connect WebSocket
     connectWebSocket();
@@ -82,6 +84,10 @@ function handleWebSocketMessage(message) {
             addLog('Map updated via WebSocket', 'success');
             fetchMap();
             break;
+        case 'trajectory':
+            addLog('Clothoid trajectory updated via WebSocket', 'success');
+            fetchTrajectory();
+            break;
         case 'pong':
             // Heartbeat response
             break;
@@ -98,6 +104,7 @@ async function updateStatus() {
         document.getElementById('map-loaded').textContent = data.has_map ? '✓ Yes' : '✗ No';
         document.getElementById('goal-set').textContent = data.has_goal ? '✓ Yes' : '✗ No';
         document.getElementById('path-length').textContent = data.path_length;
+        document.getElementById('trajectory-length').textContent = data.trajectory_length || 0;
         document.getElementById('system-status').textContent = `System: ${data.status}`;
         
     } catch (error) {
@@ -129,7 +136,7 @@ async function setGoal(x, y) {
             orientation: { x: 0.0, y: 0.0, z: 0.0, w: 1.0 }
         }
     };
-    
+
     try {
         const response = await fetch('/api/goal', {
             method: 'POST',
@@ -138,9 +145,9 @@ async function setGoal(x, y) {
             },
             body: JSON.stringify(goalData)
         });
-        
+
         const data = await response.json();
-        
+
         if (data.status === 'success') {
             currentGoal = goalData.pose;
             displayGoal();
@@ -151,6 +158,41 @@ async function setGoal(x, y) {
     } catch (error) {
         console.error('Error setting goal:', error);
         addLog('Error setting goal', 'error');
+    }
+}
+
+async function fetchTrajectory() {
+    try {
+        const response = await fetch('/api/trajectory');
+        const data = await response.json();
+
+        if (!data.error && data.trajectory) {
+            currentTrajectory = data.trajectory;
+            drawMap();
+            addLog(`Trajectory loaded: ${data.trajectory.length} points`, 'success');
+        }
+    } catch (error) {
+        console.error('Error fetching trajectory:', error);
+    }
+}
+
+async function calculateSplineTrajectory() {
+    try {
+        const response = await fetch('/api/trajectory/calculate', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+
+        const data = await response.json();
+
+        if (data.status === 'success') {
+            addLog('Clothoid trajectory calculation triggered', 'success');
+        }
+    } catch (error) {
+        console.error('Error triggering clothoid calculation:', error);
+        addLog('Error triggering clothoid calculation', 'error');
     }
 }
 
@@ -188,15 +230,48 @@ function drawMap() {
     if (currentGoal) {
         const goalX = (currentGoal.position.x + 2.5) / 5.0 * canvas.width;
         const goalY = (1 - (currentGoal.position.y + 2.5) / 5.0) * canvas.height;
-        
+
         ctx.fillStyle = '#ff0000';
         ctx.beginPath();
         ctx.arc(goalX, goalY, 10, 0, 2 * Math.PI);
         ctx.fill();
-        
+
         ctx.strokeStyle = '#ffffff';
         ctx.lineWidth = 2;
         ctx.stroke();
+    }
+
+    // Draw clothoid trajectory if available
+    if (currentTrajectory && currentTrajectory.length > 1) {
+        ctx.strokeStyle = '#00ff00';  // Green for trajectory
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+
+        for (let i = 0; i < currentTrajectory.length; i++) {
+            const point = currentTrajectory[i];
+            const x = (point.position.x + 2.5) / 5.0 * canvas.width;
+            const y = (1 - (point.position.y + 2.5) / 5.0) * canvas.height;
+
+            if (i === 0) {
+                ctx.moveTo(x, y);
+            } else {
+                ctx.lineTo(x, y);
+            }
+        }
+
+        ctx.stroke();
+
+        // Draw points along trajectory
+        ctx.fillStyle = '#00ff00';
+        for (let i = 0; i < currentTrajectory.length; i += 5) {  // Draw every 5th point
+            const point = currentTrajectory[i];
+            const x = (point.position.x + 2.5) / 5.0 * canvas.width;
+            const y = (1 - (point.position.y + 2.5) / 5.0) * canvas.height;
+
+            ctx.beginPath();
+            ctx.arc(x, y, 3, 0, 2 * Math.PI);
+            ctx.fill();
+        }
     }
     
     // Draw grid lines

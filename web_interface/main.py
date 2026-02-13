@@ -60,6 +60,8 @@ class MapData(BaseModel):
 current_map: Optional[MapData] = None
 current_goal: Optional[GoalRequest] = None
 current_path: List[Pose] = []
+current_trajectory: List[Pose] = []  # Spline trajectory
+spline_trigger: dict = {"trigger": False, "timestamp": ""}  # Trigger for spline calculation
 osm_metadata: Optional[dict] = None  # Store OSM-specific metadata
 
 # WebSocket manager
@@ -99,6 +101,7 @@ async def get_status():
         "has_map": current_map is not None,
         "has_goal": current_goal is not None,
         "path_length": len(current_path),
+        "trajectory_length": len(current_trajectory),
         "map_type": osm_metadata.get("type") if osm_metadata else "unknown",
         "map_library": "Lanelet2" if osm_metadata and osm_metadata.get("type") == "lanelet2" else "Unknown"
     }
@@ -232,6 +235,60 @@ async def request_route(route_request: dict):
     ))
     return await set_goal(goal)
     return {"error": "Invalid route request"}
+
+@app.get("/api/trajectory")
+async def get_trajectory():
+    """Get current spline trajectory"""
+    return {"trajectory": current_trajectory}
+
+@app.post("/api/trajectory")
+async def update_trajectory(trajectory_data: dict):
+    """Update the current spline trajectory (called by ROS2 bridge)"""
+    global current_trajectory
+
+    # Extract trajectory poses from the request
+    if "trajectory" in trajectory_data:
+        current_trajectory = trajectory_data["trajectory"]
+
+    # Broadcast to WebSocket clients
+    await manager.broadcast(json.dumps({
+        "type": "trajectory",
+        "data": {"trajectory": current_trajectory, "length": len(current_trajectory)}
+    }))
+
+    return {"status": "success", "trajectory_length": len(current_trajectory)}
+
+@app.post("/api/trajectory/calculate")
+async def trigger_spline_calculation():
+    """Trigger spline trajectory calculation"""
+    global spline_trigger
+
+    # Set trigger flag and timestamp
+    spline_trigger = {
+        "trigger": True,
+        "timestamp": datetime.now().isoformat()
+    }
+
+    # Broadcast to WebSocket clients
+    await manager.broadcast(json.dumps({
+        "type": "spline_trigger",
+        "data": {"triggered": True}
+    }))
+
+    return {"status": "success", "message": "Spline calculation triggered"}
+
+@app.get("/api/trajectory/trigger")
+async def get_spline_trigger():
+    """Get spline calculation trigger status (for ROS2 bridge to poll)"""
+    global spline_trigger
+
+    result = spline_trigger.copy()
+
+    # Reset trigger after reading
+    if spline_trigger["trigger"]:
+        spline_trigger["trigger"] = False
+
+    return result
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
