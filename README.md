@@ -8,6 +8,18 @@ Este proyecto combina:
 - **ROS2 Humble**: Sistema de planificación de rutas y servidor de mapas
 - **FastAPI**: Interfaz web moderna para visualización y control
 - **Docker Compose**: Despliegue automatizado de todos los servicios
+- **ROS2-Web Bridge**: Comunicación bidireccional entre ROS2 y la interfaz web
+
+## 🔗 ¿Cómo está Conectado?
+
+La interfaz web y ROS2 se comunican a través de un **nodo puente** (`ros2_web_bridge`) que coordina ambos sistemas:
+
+- 📤 **Web → ROS2**: Los objetivos del usuario se envían a través de la API REST, el bridge los detecta y publica en topics ROS2
+- 📥 **ROS2 → Web**: Los mapas y rutas se publican en topics, el bridge los captura y envía a la API web para visualización
+
+**📖 Documentación detallada:**
+- **[CONEXION.md](CONEXION.md)** - Guía completa en español sobre cómo funciona la comunicación
+- **[CONNECTION_DIAGRAM.md](CONNECTION_DIAGRAM.md)** - Diagramas visuales del flujo de datos
 
 ## 🏗️ Estructura del Proyecto
 
@@ -17,8 +29,9 @@ planner_map/
 │   └── src/
 │       └── planner_map/        # Paquete ROS2
 │           ├── planner_map/    # Código Python
-│           │   ├── planner_node.py     # Nodo de planificación
-│           │   └── map_server.py       # Servidor de mapas
+│           │   ├── planner_node.py      # Nodo de planificación
+│           │   ├── map_server.py        # Servidor de mapas
+│           │   └── ros2_web_bridge.py   # Puente ROS2 ↔ Web
 │           ├── launch/         # Archivos launch
 │           ├── config/         # Configuración
 │           ├── package.xml     # Dependencias ROS2
@@ -33,6 +46,8 @@ planner_map/
 ├── Dockerfile.ros             # Docker para ROS2
 ├── Dockerfile.web             # Docker para Web
 ├── docker-compose.yml         # Orquestación de servicios
+├── CONEXION.md                # Guía de conexión (Español)
+├── CONNECTION_DIAGRAM.md      # Diagramas de conexión
 └── README.md                  # Este archivo
 ```
 
@@ -66,9 +81,23 @@ planner_map/
   - Control de objetivos de navegación
   - Estado del sistema en tiempo real
   
-- **ROS2 Nodes**:
+- **ROS2 Nodes** (se inician automáticamente):
   - `planner_node`: Nodo de planificación de rutas
   - `map_server`: Servidor de mapas
+  - `ros2_web_bridge`: Puente de comunicación ROS2 ↔ Web
+
+### Verificar la Conexión
+
+```bash
+# Ver nodos ROS2 activos (debe incluir ros2_web_bridge)
+docker-compose exec ros2 ros2 node list
+
+# Ver topics (debe incluir /map, /goal_pose, /planned_path)
+docker-compose exec ros2 ros2 topic list
+
+# Monitorear comunicación del bridge
+docker-compose logs -f ros2 | grep bridge
+```
 
 ## 🛠️ Desarrollo Local
 
