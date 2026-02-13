@@ -234,7 +234,6 @@ async def request_route(route_request: dict):
         orientation=Orientation()
     ))
     return await set_goal(goal)
-    return {"error": "Invalid route request"}
 
 @app.get("/api/trajectory")
 async def get_trajectory():

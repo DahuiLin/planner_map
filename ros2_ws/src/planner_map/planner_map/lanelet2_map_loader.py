@@ -165,7 +165,7 @@ class Lanelet2MapLoader:
                     if optional_route:
                         route = optional_route
                         break
-                except:
+                except Exception:
                     continue
             if route:
                 break
