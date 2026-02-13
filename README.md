@@ -1,6 +1,6 @@
-# Planner Map - ROS2 + FastAPI + Docker
+# Planner Map - ROS2 + FastAPI + Docker + OSM Support
 
-Sistema de planificación y mapeo integrado con ROS2, interfaz web FastAPI y despliegue automatizado con Docker Compose.
+Sistema de planificación y mapeo integrado con ROS2, interfaz web FastAPI, soporte para mapas OpenStreetMap (OSM) y despliegue automatizado con Docker Compose.
 
 ## 📋 Descripción
 
@@ -9,6 +9,8 @@ Este proyecto combina:
 - **FastAPI**: Interfaz web moderna para visualización y control
 - **Docker Compose**: Despliegue automatizado de todos los servicios
 - **ROS2-Web Bridge**: Comunicación bidireccional entre ROS2 y la interfaz web
+- **🗺️ OSM Support**: Carga mapas OpenStreetMap (.osm) y planifica rutas en redes viales reales
+- **🚗 Car Navigation**: Encuentra las rutas más cortas para coches usando algoritmos de grafos
 
 ## 🔗 ¿Cómo está Conectado?
 
@@ -20,6 +22,7 @@ La interfaz web y ROS2 se comunican a través de un **nodo puente** (`ros2_web_b
 **📖 Documentación detallada:**
 - **[CONEXION.md](CONEXION.md)** - Guía completa en español sobre cómo funciona la comunicación
 - **[CONNECTION_DIAGRAM.md](CONNECTION_DIAGRAM.md)** - Diagramas visuales del flujo de datos
+- **[OSM_SUPPORT.md](OSM_SUPPORT.md)** - 🆕 Guía completa de soporte OSM y navegación vial
 
 ## 🏗️ Estructura del Proyecto
 
@@ -161,6 +164,9 @@ docker-compose logs -f ros2 | grep bridge
 ### ROS2
 - ✅ Nodo de planificación de rutas
 - ✅ Servidor de mapas con OccupancyGrid
+- ✅ **🆕 Soporte para mapas OSM (.osm)**
+- ✅ **🆕 Cargador OSM con osmium y networkx**
+- ✅ **🆕 Algoritmo de ruta más corta (Dijkstra)**
 - ✅ Publishers y Subscribers configurados
 - ✅ Launch files para inicio automático
 - ✅ Parámetros configurables
@@ -181,7 +187,39 @@ docker-compose logs -f ros2 | grep bridge
 - ✅ Volumes para desarrollo en caliente
 - ✅ Restart automático
 
-## 🔧 Configuración
+## 🗺️ Usando Mapas OSM
+
+### Inicio Rápido con OSM
+
+1. **Usar el mapa de muestra**:
+   ```bash
+   # Un mapa OSM de muestra está incluido
+   docker-compose up --build
+   ```
+
+2. **Descargar tu propio mapa OSM**:
+   - Visita [openstreetmap.org](https://www.openstreetmap.org/)
+   - Navega a tu área de interés
+   - Click en "Export" → Descarga el archivo .osm
+   - Coloca el archivo en `config/your_map.osm`
+
+3. **Configurar el mapa personalizado**:
+   ```bash
+   # Edita docker-compose.yml para especificar tu archivo OSM
+   ros2 launch planner_map planner_map.launch.py \
+     osm_file:=/workspace/config/your_map.osm
+   ```
+
+### Características OSM
+
+- 🗺️ Carga mapas reales de OpenStreetMap
+- 🚗 Planificación de rutas en redes viales
+- 🛣️ Soporta diferentes tipos de carreteras (autopista, primaria, residencial, etc.)
+- 📏 Encuentra la ruta más corta usando algoritmo de Dijkstra
+- 🌐 Conversión automática entre coordenadas lat/lon y XY locales
+- 📊 Visualización de red vial en la interfaz web
+
+**Ver [OSM_SUPPORT.md](OSM_SUPPORT.md) para documentación completa**
 
 ### Variables de Entorno
 

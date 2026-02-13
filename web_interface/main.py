@@ -60,6 +60,7 @@ class MapData(BaseModel):
 current_map: Optional[MapData] = None
 current_goal: Optional[GoalRequest] = None
 current_path: List[Pose] = []
+osm_metadata: Optional[dict] = None  # Store OSM-specific metadata
 
 # WebSocket manager
 class ConnectionManager:
@@ -97,7 +98,8 @@ async def get_status():
         "timestamp": datetime.now().isoformat(),
         "has_map": current_map is not None,
         "has_goal": current_goal is not None,
-        "path_length": len(current_path)
+        "path_length": len(current_path),
+        "map_type": osm_metadata.get("type") if osm_metadata else "unknown"
     }
 
 @app.get("/api/map")
@@ -155,14 +157,80 @@ async def update_map(map_data: MapData):
     """Update the current map (typically called by ROS2 bridge)"""
     global current_map
     current_map = map_data
-    
+
     # Broadcast to WebSocket clients
     await manager.broadcast(json.dumps({
         "type": "map",
         "data": {"updated": True}
     }))
-    
+
     return {"status": "success"}
+
+@app.post("/api/map/metadata")
+async def update_map_metadata(metadata: dict):
+    """Update OSM map metadata"""
+    global osm_metadata
+    osm_metadata = metadata
+
+    # Broadcast to WebSocket clients
+    await manager.broadcast(json.dumps({
+        "type": "map_metadata",
+        "data": metadata
+    }))
+
+    return {"status": "success"}
+
+@app.get("/api/map/osm")
+async def get_osm_map():
+    """Get OSM-specific map data"""
+    if osm_metadata is None:
+        return {"error": "No OSM map loaded"}
+    return osm_metadata
+
+@app.post("/api/route")
+async def request_route(route_request: dict):
+    """Request a route between two points"""
+    # This endpoint can be called by the web interface
+    # to request a route from ROS2
+    # Format: {"start": {"lat": ..., "lon": ...}, "end": {"lat": ..., "lon": ...}}
+
+    # For now, we'll just set the goal and let ROS2 handle it
+    # In a full implementation, this would trigger route calculation
+
+    end = route_request.get("end")
+    if not isinstance(end, dict):
+        return {"error": "Invalid route request: 'end' must be an object"}
+
+    # Prefer explicit x/y if provided (backwards compatibility)
+    x = end.get("x")
+    y = end.get("y")
+
+    # If x/y are not provided, fall back to documented lat/lon format
+    if x is None or y is None:
+        lat = end.get("lat")
+        lon = end.get("lon")
+        if lat is None or lon is None:
+            return {
+                "error": "Invalid route request: provide either 'x'/'y' or 'lat'/'lon' in 'end'"
+            }
+        try:
+            # Placeholder conversion: map lat/lon to x/y directly.
+            # A real implementation would project these into the map frame.
+            x = float(lon)
+            y = float(lat)
+        except (TypeError, ValueError):
+            return {"error": "Invalid route request: 'lat' and 'lon' must be numeric"}
+
+    goal = GoalRequest(pose=Pose(
+        position=Position(
+            x=x,
+            y=y,
+            z=0.0
+        ),
+        orientation=Orientation()
+    ))
+    return await set_goal(goal)
+    return {"error": "Invalid route request"}
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket):
