@@ -1,0 +1,11 @@
+planner_node:
+  ros__parameters:
+    update_rate: 10.0
+    planning_algorithm: "simple"
+    
+map_server:
+  ros__parameters:
+    map_file: ""
+    resolution: 0.05
+    origin_x: -2.5
+    origin_y: -2.5

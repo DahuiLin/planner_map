@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Planner Map - Web Interface</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🗺️ Planner Map - ROS2 Web Interface</h1>
+            <div class="status-bar">
+                <span id="connection-status" class="status-indicator">⚫ Disconnected</span>
+                <span id="system-status">System: Unknown</span>
+            </div>
+        </header>
+
+        <main>
+            <div class="grid-container">
+                <!-- Map Visualization -->
+                <div class="panel map-panel">
+                    <h2>Map Visualization</h2>
+                    <div class="map-container">
+                        <canvas id="map-canvas" width="600" height="600"></canvas>
+                    </div>
+                    <div class="map-info">
+                        <p>Click on the map to set a goal position</p>
+                        <p id="map-dimensions">Map: Not loaded</p>
+                    </div>
+                </div>
+
+                <!-- Control Panel -->
+                <div class="panel control-panel">
+                    <h2>Control Panel</h2>
+                    
+                    <div class="section">
+                        <h3>System Status</h3>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <span class="label">Status:</span>
+                                <span id="sys-status">-</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="label">Map Loaded:</span>
+                                <span id="map-loaded">-</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="label">Goal Set:</span>
+                                <span id="goal-set">-</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="label">Path Length:</span>
+                                <span id="path-length">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <h3>Manual Goal Input</h3>
+                        <form id="goal-form">
+                            <div class="form-group">
+                                <label for="goal-x">X Position:</label>
+                                <input type="number" id="goal-x" step="0.1" value="0.0">
+                            </div>
+                            <div class="form-group">
+                                <label for="goal-y">Y Position:</label>
+                                <input type="number" id="goal-y" step="0.1" value="0.0">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Set Goal</button>
+                        </form>
+                    </div>
+
+                    <div class="section">
+                        <h3>Current Goal</h3>
+                        <div id="current-goal" class="goal-display">
+                            No goal set
+                        </div>
+                    </div>
+
+                    <div class="section">
+                        <h3>Actions</h3>
+                        <button class="btn btn-secondary" onclick="refreshMap()">Refresh Map</button>
+                        <button class="btn btn-secondary" onclick="clearPath()">Clear Path</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Log Panel -->
+            <div class="panel log-panel">
+                <h2>Activity Log</h2>
+                <div id="log-container" class="log-content">
+                    <div class="log-entry">System initialized</div>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>ROS2 Planner Map Web Interface v0.1.0 | Connected via WebSocket</p>
+        </footer>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>

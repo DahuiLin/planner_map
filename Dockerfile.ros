@@ -1,0 +1,51 @@
+# ROS2 Humble with Python 3
+FROM osrf/ros:humble-desktop
+
+# Set working directory
+WORKDIR /workspace
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    python3-pip \
+    python3-colcon-common-extensions \
+    ros-humble-navigation2 \
+    ros-humble-nav2-bringup \
+    libboost-all-dev \
+    libeigen3-dev \
+    libgeographic-dev \
+    libpugixml-dev \
+    libboost-python-dev \
+    python3-dev \
+    git \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install lanelet2 from source
+RUN mkdir -p /tmp/lanelet2_ws/src && cd /tmp/lanelet2_ws/src && \
+    git clone https://github.com/fzi-forschungszentrum-informatik/lanelet2.git && \
+    cd /tmp/lanelet2_ws && \
+    . /opt/ros/humble/setup.sh && \
+    colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release && \
+    echo "source /tmp/lanelet2_ws/install/setup.bash" >> ~/.bashrc && \
+    rm -rf /tmp/lanelet2_ws/build /tmp/lanelet2_ws/log
+
+# Copy ROS2 workspace
+COPY ros2_ws /workspace/ros2_ws
+
+# Install Python dependencies
+RUN pip3 install --no-cache-dir -r /workspace/ros2_ws/requirements.txt
+
+# Build ROS2 workspace
+WORKDIR /workspace/ros2_ws
+RUN . /opt/ros/humble/setup.sh && \
+    colcon build --symlink-install
+
+# Source ROS2 setup
+RUN echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc && \
+    echo "source /workspace/ros2_ws/install/setup.bash" >> ~/.bashrc
+
+# Set entrypoint
+COPY docker/ros_entrypoint.sh /ros_entrypoint.sh
+RUN chmod +x /ros_entrypoint.sh
+
+ENTRYPOINT ["/ros_entrypoint.sh"]
+CMD ["ros2", "launch", "planner_map", "planner_map.launch.py"]

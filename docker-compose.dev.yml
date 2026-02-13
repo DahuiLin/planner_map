@@ -1,0 +1,45 @@
+version: '3.8'
+
+# Development version with hot-reload and exposed ports for debugging
+
+services:
+  ros2:
+    build:
+      context: .
+      dockerfile: Dockerfile.ros
+    container_name: planner_map_ros2_dev
+    networks:
+      - planner_network
+    environment:
+      - ROS_DOMAIN_ID=0
+      - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+    volumes:
+      - ./ros2_ws:/workspace/ros2_ws
+      - ./config:/workspace/config
+    restart: unless-stopped
+    stdin_open: true
+    tty: true
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    container_name: planner_map_web_dev
+    ports:
+      - "8000:8000"
+    networks:
+      - planner_network
+    environment:
+      - PYTHONUNBUFFERED=1
+      - RELOAD=true
+    volumes:
+      - ./web_interface:/app
+    restart: unless-stopped
+    depends_on:
+      - ros2
+    stdin_open: true
+    tty: true
+
+networks:
+  planner_network:
+    driver: bridge

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<osm version="0.6" generator="Manual">
+  <!-- Sample OSM map for testing -->
+  <!-- This represents a small road network with a few intersections -->
+
+  <!-- Nodes (intersections and waypoints) -->
+  <node id="1" lat="40.7480" lon="-73.9870" version="1"/>
+  <node id="2" lat="40.7490" lon="-73.9870" version="1"/>
+  <node id="3" lat="40.7500" lon="-73.9870" version="1"/>
+  <node id="4" lat="40.7480" lon="-73.9860" version="1"/>
+  <node id="5" lat="40.7490" lon="-73.9860" version="1"/>
+  <node id="6" lat="40.7500" lon="-73.9860" version="1"/>
+  <node id="7" lat="40.7480" lon="-73.9850" version="1"/>
+  <node id="8" lat="40.7490" lon="-73.9850" version="1"/>
+  <node id="9" lat="40.7500" lon="-73.9850" version="1"/>
+
+  <!-- Ways (streets) -->
+  <!-- Vertical streets -->
+  <way id="100" version="1">
+    <nd ref="1"/>
+    <nd ref="2"/>
+    <nd ref="3"/>
+    <tag k="highway" v="residential"/>
+    <tag k="name" v="1st Avenue"/>
+  </way>
+
+  <way id="101" version="1">
+    <nd ref="4"/>
+    <nd ref="5"/>
+    <nd ref="6"/>
+    <tag k="highway" v="residential"/>
+    <tag k="name" v="2nd Avenue"/>
+  </way>
+
+  <way id="102" version="1">
+    <nd ref="7"/>
+    <nd ref="8"/>
+    <nd ref="9"/>
+    <tag k="highway" v="residential"/>
+    <tag k="name" v="3rd Avenue"/>
+  </way>
+
+  <!-- Horizontal streets -->
+  <way id="200" version="1">
+    <nd ref="1"/>
+    <nd ref="4"/>
+    <nd ref="7"/>
+    <tag k="highway" v="secondary"/>
+    <tag k="name" v="Main Street"/>
+  </way>
+
+  <way id="201" version="1">
+    <nd ref="2"/>
+    <nd ref="5"/>
+    <nd ref="8"/>
+    <tag k="highway" v="residential"/>
+    <tag k="name" v="Oak Street"/>
+  </way>
+
+  <way id="202" version="1">
+    <nd ref="3"/>
+    <nd ref="6"/>
+    <nd ref="9"/>
+    <tag k="highway" v="residential"/>
+    <tag k="name" v="Elm Street"/>
+  </way>
+</osm>
