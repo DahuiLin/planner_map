@@ -10,6 +10,7 @@ from std_msgs.msg import String
 from sensor_msgs.msg import NavSatFix
 import json
 from .lanelet2_map_loader import Lanelet2MapLoader
+from .spline_trajectory import SplineTrajectoryGenerator
 
 
 class PlannerNode(Node):
@@ -22,10 +23,13 @@ class PlannerNode(Node):
 
         # Parameters
         self.declare_parameter('osm_file', '')
+        self.declare_parameter('trajectory_dt', 0.1)  # Sampling time for trajectory (default 0.1s = 10Hz)
+        self.declare_parameter('max_velocity', 5.0)   # Maximum velocity in m/s (default 5.0 m/s)
 
         # Publishers
         self.path_pub = self.create_publisher(Path, '/planned_path', 10)
         self.cmd_vel_pub = self.create_publisher(Twist, '/cmd_vel', 10)
+        self.trajectory_pub = self.create_publisher(Path, '/spline_trajectory', 10)
 
         # Subscribers
         self.goal_sub = self.create_subscription(
@@ -53,16 +57,29 @@ class PlannerNode(Node):
             self.gps_callback,
             10
         )
+        # Subscribe to spline trajectory calculation requests
+        self.spline_trigger_sub = self.create_subscription(
+            String,
+            '/calculate_spline_trajectory',
+            self.calculate_spline_trajectory_callback,
+            10
+        )
 
         # State variables
         self.current_map = None
         self.current_goal = None
         self.current_path = None
         self.vehicle_gps = None  # Vehicle GPS position from /fix topic
+        self.current_spline_trajectory = None  # Spline trajectory
 
         # Lanelet2 loader for routing
         self.map_loader = Lanelet2MapLoader()
         self.map_loaded = False
+
+        # Spline trajectory generator
+        dt = self.get_parameter('trajectory_dt').value
+        max_vel = self.get_parameter('max_velocity').value
+        self.spline_generator = SplineTrajectoryGenerator(dt=dt, max_velocity=max_vel)
 
         # Load OSM file if specified
         osm_file = self.get_parameter('osm_file').value
@@ -211,6 +228,65 @@ class PlannerNode(Node):
         """Periodic update callback"""
         # Placeholder for periodic control updates
         pass
+
+    def calculate_spline_trajectory_callback(self, msg):
+        """Handle request to calculate spline trajectory from current path"""
+        self.get_logger().info('Received request to calculate spline trajectory')
+
+        if self.current_path is None or len(self.current_path.poses) < 2:
+            self.get_logger().warn('No valid path available for spline calculation')
+            return
+
+        # Extract waypoints from current path
+        waypoints = []
+        for pose_stamped in self.current_path.poses:
+            waypoints.append((
+                pose_stamped.pose.position.x,
+                pose_stamped.pose.position.y,
+                pose_stamped.pose.position.z
+            ))
+
+        self.get_logger().info(f'Generating spline trajectory from {len(waypoints)} waypoints')
+
+        # Generate spline trajectory
+        try:
+            trajectory_points = self.spline_generator.generate_trajectory(waypoints)
+
+            if not trajectory_points:
+                self.get_logger().warn('Failed to generate spline trajectory')
+                return
+
+            # Validate trajectory
+            is_valid, message = self.spline_generator.validate_trajectory(trajectory_points)
+            if not is_valid:
+                self.get_logger().error(f'Invalid trajectory: {message}')
+                return
+
+            self.get_logger().info(f'Generated trajectory with {len(trajectory_points)} points. {message}')
+
+            # Convert to ROS Path message
+            trajectory_msg = Path()
+            trajectory_msg.header.frame_id = 'map'
+            trajectory_msg.header.stamp = self.get_clock().now().to_msg()
+
+            for point in trajectory_points:
+                pose = PoseStamped()
+                pose.header = trajectory_msg.header
+                pose.pose.position.x = point.x
+                pose.pose.position.y = point.y
+                pose.pose.position.z = point.z
+                pose.pose.orientation.w = 1.0
+
+                trajectory_msg.poses.append(pose)
+
+            self.current_spline_trajectory = trajectory_msg
+            self.trajectory_pub.publish(trajectory_msg)
+            self.get_logger().info(f'Published spline trajectory with {len(trajectory_points)} points')
+
+        except Exception as e:
+            self.get_logger().error(f'Failed to calculate spline trajectory: {e}')
+            import traceback
+            self.get_logger().error(traceback.format_exc())
 
 
 def main(args=None):
