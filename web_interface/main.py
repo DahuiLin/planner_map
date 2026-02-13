@@ -99,7 +99,8 @@ async def get_status():
         "has_map": current_map is not None,
         "has_goal": current_goal is not None,
         "path_length": len(current_path),
-        "map_type": osm_metadata.get("type") if osm_metadata else "unknown"
+        "map_type": osm_metadata.get("type") if osm_metadata else "unknown",
+        "map_library": "Lanelet2" if osm_metadata and osm_metadata.get("type") == "lanelet2" else "Unknown"
     }
 
 @app.get("/api/map")
@@ -182,9 +183,9 @@ async def update_map_metadata(metadata: dict):
 
 @app.get("/api/map/osm")
 async def get_osm_map():
-    """Get OSM-specific map data"""
+    """Get OSM-specific map data (supports both Lanelet2 and legacy OSM formats)"""
     if osm_metadata is None:
-        return {"error": "No OSM map loaded"}
+        return {"error": "No map loaded"}
     return osm_metadata
 
 @app.post("/api/route")
