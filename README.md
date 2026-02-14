@@ -297,6 +297,23 @@ ports:
   - "8001:8000"  # Usar 8001 en lugar de 8000
 ```
 
+### Error RMW Implementation
+Si aparece el error `librmw_cyclonedds_cpp.so: cannot open shared object file`:
+
+**Solución 1 (Recomendada)**: Reconstruir la imagen Docker con las dependencias actualizadas:
+```bash
+docker-compose down
+docker-compose build --no-cache ros2
+docker-compose up
+```
+
+**Solución 2 (Alternativa)**: Cambiar a FastRTPS (RMW por defecto en ROS2 Humble):
+```yaml
+# En docker-compose.yml, cambiar:
+environment:
+  - RMW_IMPLEMENTATION=rmw_fastrtps_cpp  # En lugar de rmw_cyclonedds_cpp
+```
+
 ### Logs de servicios
 ```bash
 # Ver logs de ROS2
