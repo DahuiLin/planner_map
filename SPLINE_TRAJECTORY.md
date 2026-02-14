@@ -275,7 +275,7 @@ ros2 topic echo /spline_trajectory
 pip3 install numpy scipy
 
 # Or rebuild Docker container (scipy added to requirements.txt)
-docker-compose build ros2
+docker compose build ros2
 ```
 
 ## Future Enhancements

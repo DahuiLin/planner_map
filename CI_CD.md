@@ -33,7 +33,7 @@ This repository includes comprehensive CI/CD workflows using GitHub Actions to e
 - Finds debug print statements
 
 #### Docker Compose Validation
-- Validates docker-compose.yml syntax
+- Validates docker compose.yml syntax
 - Checks for required Docker files
 
 ### 2. Deploy (`deploy.yml`)
@@ -71,7 +71,7 @@ To enable full CI/CD functionality, configure these secrets in your GitHub repos
 
 ## Health Checks
 
-Both services include health checks in `docker-compose.yml`:
+Both services include health checks in `docker compose.yml`:
 
 ### ROS2 Service
 - **Test**: Checks if ROS2 nodes are running
@@ -100,7 +100,7 @@ The `test_integration.py` script tests:
 
 ```bash
 # Start services
-docker-compose up -d
+docker compose up -d
 
 # Wait for services to be ready
 sleep 30
@@ -120,7 +120,7 @@ python3 test_integration.py
 2. **Docker Buildx Setup**: Enables advanced Docker build features
 3. **Cache**: Restores cached Docker layers for faster builds
 4. **Build Images**: Builds ROS2 and Web images
-5. **Start Services**: Launches containers with docker-compose
+5. **Start Services**: Launches containers with docker compose
 6. **Health Checks**: Verifies services are running properly
 7. **API Tests**: Tests Web API endpoints
 8. **ROS2 Tests**: Checks ROS2 nodes and topics
@@ -153,7 +153,7 @@ python3 test_integration.py
    ```bash
    docker pull <your-username>/planner_map_ros2:v1.0.0
    docker pull <your-username>/planner_map_web:v1.0.0
-   docker-compose up -d
+   docker compose up -d
    ```
 
 ### Manual Deployment
@@ -198,7 +198,7 @@ Add build status badges to your README:
 **Issue**: Containers start but health checks fail
 
 **Solutions**:
-- Check container logs: `docker-compose logs`
+- Check container logs: `docker compose logs`
 - Verify health check commands work inside containers
 - Increase `start_period` in health check configuration
 - Ensure dependencies are properly configured
@@ -208,7 +208,7 @@ Add build status badges to your README:
 **Issue**: API endpoints not responding
 
 **Solutions**:
-- Check if containers are running: `docker-compose ps`
+- Check if containers are running: `docker compose ps`
 - Verify network connectivity between containers
 - Check web service logs for errors
 - Ensure ROS2 nodes are started properly

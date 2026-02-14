@@ -213,7 +213,7 @@ cp mi_mapa_personalizado.osm /home/runner/work/planner_map/planner_map/config/
 
 ### 2. Configurar Docker Compose
 
-Editar `docker-compose.yml`:
+Editar `docker compose.yml`:
 
 ```yaml
 services:
@@ -254,10 +254,10 @@ def generate_launch_description():
 
 ```bash
 # Iniciar sistema
-docker-compose up
+docker compose up
 
 # Ver logs
-docker-compose logs ros2 | grep -i lanelet
+docker compose logs ros2 | grep -i lanelet
 
 # Deberías ver:
 # "Loading Lanelet2 map from: /workspace/config/mi_mapa_personalizado.osm"
@@ -344,7 +344,7 @@ grep 'type="lanelet"' /workspace/config/mi_mapa_personalizado.osm
 # Lat/Lon deben estar dentro de bounds del mapa
 
 # Ver bounds en logs:
-docker-compose logs ros2 | grep bounds
+docker compose logs ros2 | grep bounds
 
 # Verificar en JOSM:
 # 1. Seleccionar herramienta de validación
@@ -450,7 +450,7 @@ Para cargar un mapa personalizado:
 
 1. **Crear/obtener mapa Lanelet2** (OSM con tags específicos)
 2. **Colocar en** `config/mi_mapa.osm`
-3. **Configurar** en `docker-compose.yml` o launch file
+3. **Configurar** en `docker compose.yml` o launch file
 4. **Publicar GPS** dentro del área del mapa
 5. **Verificar** logs y metadatos
 6. **Probar** enrutamiento en web interface

@@ -145,7 +145,7 @@ El frontend JavaScript se comunica con la API:
 Los contenedores se comunican a través de una red Docker:
 
 ```yaml
-# docker-compose.yml
+# docker compose.yml
 networks:
   planner_network:
     driver: bridge
@@ -178,7 +178,7 @@ Esta frecuencia es configurable y puede ajustarse según las necesidades.
 
 ```bash
 # Inicia todos los servicios conectados
-docker-compose up --build
+docker compose up --build
 
 # Los tres nodos ROS2 se inician automáticamente:
 # - map_server
@@ -210,7 +210,7 @@ uvicorn main:app --reload --host 0.0.0.0 --port 8000
 
 ```bash
 # En el contenedor ROS2
-docker-compose exec ros2 bash
+docker compose exec ros2 bash
 ros2 node list
 
 # Deberías ver:
@@ -234,7 +234,7 @@ ros2 topic list
 
 ```bash
 # Ver logs del bridge
-docker-compose logs -f ros2
+docker compose logs -f ros2
 
 # Busca mensajes como:
 # [ros2_web_bridge]: ROS2-Web bridge initialized
@@ -283,10 +283,10 @@ curl -X POST http://localhost:8000/api/goal \
 docker network inspect planner_map_planner_network
 
 # Asegúrate que el contenedor web está corriendo
-docker-compose ps
+docker compose ps
 
 # Prueba conectividad desde el contenedor ROS2
-docker-compose exec ros2 ping web
+docker compose exec ros2 ping web
 ```
 
 ### Problema: Objetivos no llegan a ROS2
@@ -300,7 +300,7 @@ ros2 topic echo /goal_pose
 # (hacer clic en el mapa)
 
 # Si no ves el objetivo, verifica:
-docker-compose logs ros2_web_bridge
+docker compose logs ros2_web_bridge
 ```
 
 ### Problema: Mapas no aparecen en la web
@@ -311,7 +311,7 @@ docker-compose logs ros2_web_bridge
 ros2 topic hz /map
 
 # Verifica logs del bridge
-docker-compose logs -f ros2 | grep "Map data sent"
+docker compose logs -f ros2 | grep "Map data sent"
 
 # Verifica en la API web
 curl http://localhost:8000/api/map

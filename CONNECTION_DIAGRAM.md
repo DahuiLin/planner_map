@@ -130,7 +130,7 @@ CARACTERÍSTICAS CLAVE:
 ✓ Actualizaciones en tiempo real via WebSocket
 ✓ Polling inteligente con throttling de errores
 ✓ Manejo robusto de errores y timeouts
-✓ Todos los nodos se lanzan automáticamente con docker-compose
+✓ Todos los nodos se lanzan automáticamente con docker compose
 
 ═══════════════════════════════════════════════════════════════════════
 
@@ -159,13 +159,13 @@ Ambos contenedores están en la red: planner_network
 
 ```bash
 # Ver nodos activos (debe incluir ros2_web_bridge)
-docker-compose exec ros2 ros2 node list
+docker compose exec ros2 ros2 node list
 
 # Ver topics (debe incluir /map, /goal_pose, /planned_path)
-docker-compose exec ros2 ros2 topic list
+docker compose exec ros2 ros2 topic list
 
 # Monitorear comunicación del bridge
-docker-compose logs -f ros2 | grep bridge
+docker compose logs -f ros2 | grep bridge
 
 # Verificar API web
 curl http://localhost:8000/api/status

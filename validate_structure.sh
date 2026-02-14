@@ -45,8 +45,8 @@ check_file ".dockerignore"
 # Docker files
 check_file "Dockerfile.ros"
 check_file "Dockerfile.web"
-check_file "docker-compose.yml"
-check_file "docker-compose.dev.yml"
+check_file "docker compose.yml"
+check_file "docker compose.dev.yml"
 
 # Directories
 check_dir "docker"

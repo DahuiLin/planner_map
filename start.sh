@@ -18,14 +18,14 @@ if ! command -v docker &> /dev/null; then
 fi
 
 # Check if Docker Compose is installed
-if ! command -v docker-compose &> /dev/null; then
+if ! command -v docker compose &> /dev/null; then
     echo "❌ Error: Docker Compose is not installed."
     echo "   Please install Docker Compose from https://docs.docker.com/compose/install/"
     exit 1
 fi
 
 echo "✅ Docker is installed: $(docker --version)"
-echo "✅ Docker Compose is installed: $(docker-compose --version)"
+echo "✅ Docker Compose is installed: $(docker compose --version)"
 echo ""
 
 # Check if Docker daemon is running
@@ -55,19 +55,19 @@ case $choice in
         echo ""
         echo "🔨 Building and starting services..."
         echo "   This may take several minutes on first run."
-        docker-compose up --build -d
+        docker compose up --build -d
         echo ""
         echo "✅ Services started!"
         echo ""
         echo "🌐 Web interface: http://localhost:8000"
         echo ""
-        echo "📊 To view logs: docker-compose logs -f"
-        echo "🛑 To stop: docker-compose down"
+        echo "📊 To view logs: docker compose logs -f"
+        echo "🛑 To stop: docker compose down"
         ;;
     2)
         echo ""
         echo "🚀 Starting services..."
-        docker-compose up -d
+        docker compose up -d
         echo ""
         echo "✅ Services started!"
         echo ""
@@ -76,20 +76,20 @@ case $choice in
     3)
         echo ""
         echo "🛑 Stopping services..."
-        docker-compose down
+        docker compose down
         echo "✅ Services stopped!"
         ;;
     4)
         echo ""
         echo "📊 Showing logs (Press Ctrl+C to exit)..."
-        docker-compose logs -f
+        docker compose logs -f
         ;;
     5)
         echo ""
         read -p "⚠️  This will remove all containers and volumes. Continue? (y/n): " confirm
         if [ "$confirm" = "y" ] || [ "$confirm" = "Y" ]; then
             echo "🧹 Cleaning up..."
-            docker-compose down -v
+            docker compose down -v
             rm -rf ros2_ws/build ros2_ws/install ros2_ws/log
             echo "✅ Cleanup complete!"
         else

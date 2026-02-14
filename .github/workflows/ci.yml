@@ -188,7 +188,7 @@ jobs:
           echo -e "\nChecking for debug print statements..."
           grep -r "print(" web_interface/ || echo "No print statements found"
 
-  docker-compose-validation:
+  docker compose-validation:
     name: Validate Docker Compose Configuration
     runs-on: ubuntu-latest
 
@@ -196,7 +196,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Validate docker-compose.yml
+      - name: Validate docker compose.yml
         run: |
           docker compose config
 
@@ -205,5 +205,5 @@ jobs:
           echo "Checking for required Docker files..."
           test -f Dockerfile.ros || (echo "ERROR: Dockerfile.ros not found" && exit 1)
           test -f Dockerfile.web || (echo "ERROR: Dockerfile.web not found" && exit 1)
-          test -f docker-compose.yml || (echo "ERROR: docker-compose.yml not found" && exit 1)
+          test -f docker compose.yml || (echo "ERROR: docker compose.yml not found" && exit 1)
           echo "All required Docker files found!"

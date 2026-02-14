@@ -143,7 +143,7 @@ Este documento resume todos los cambios implementados para migrar el sistema de 
 1. **Test de Carga de Mapa:**
    ```bash
    # Verificar que Lanelet2 carga correctamente
-   docker-compose logs ros2 | grep -i lanelet
+   docker compose logs ros2 | grep -i lanelet
    ```
 
 2. **Test de GPS:**
@@ -167,9 +167,9 @@ Este documento resume todos los cambios implementados para migrar el sistema de 
 ### 1. "Lanelet2 library is not available"
 **Solución:** Reconstruir contenedor Docker
 ```bash
-docker-compose down
-docker-compose build --no-cache ros2
-docker-compose up
+docker compose down
+docker compose build --no-cache ros2
+docker compose up
 ```
 
 ### 2. "No vehicle GPS position available"

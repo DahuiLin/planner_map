@@ -161,7 +161,7 @@ Transformations:
 
 ```bash
 cd /home/runner/work/planner_map/planner_map
-docker-compose build
+docker compose build
 ```
 
 This will:
@@ -172,14 +172,14 @@ This will:
 ### 2. Launch with Sample Map
 
 ```bash
-docker-compose up
+docker compose up
 ```
 
 The system will use the default map (sample or occupancy grid).
 
 ### 3. Launch with OSM File
 
-Edit `docker-compose.yml`:
+Edit `docker compose.yml`:
 ```yaml
 services:
   ros2:
@@ -192,7 +192,7 @@ services:
 
 Or manually:
 ```bash
-docker-compose exec ros2 bash
+docker compose exec ros2 bash
 ros2 launch planner_map planner_map.launch.py osm_file:=/workspace/config/sample_map.osm
 ```
 
@@ -207,7 +207,7 @@ ros2 launch planner_map planner_map.launch.py osm_file:=/workspace/config/sample
 ### 5. Verify ROS2 Topics
 
 ```bash
-docker-compose exec ros2 bash
+docker compose exec ros2 bash
 
 # Check topics
 ros2 topic list

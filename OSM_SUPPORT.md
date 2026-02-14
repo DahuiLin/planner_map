@@ -37,15 +37,15 @@ curl -o my_map.osm "http://overpass-api.de/api/map?bbox=left,bottom,right,top"
 
 ```bash
 # Using Docker Compose
-docker-compose up --build
+docker compose up --build
 
 # The system will look for OSM file in config directory
-# You can specify a custom OSM file by modifying docker-compose.yml
+# You can specify a custom OSM file by modifying docker compose.yml
 ```
 
 ### 3. Using Custom OSM Files
 
-Edit `docker-compose.yml` to specify your OSM file:
+Edit `docker compose.yml` to specify your OSM file:
 
 ```yaml
 services:
@@ -196,7 +196,7 @@ For advanced lanelet map support (not required for basic OSM):
 
 **Solution**:
 - Check the file path is correct
-- Ensure the file is mounted in Docker: add to `docker-compose.yml`
+- Ensure the file is mounted in Docker: add to `docker compose.yml`
   ```yaml
   volumes:
     - ./your_maps:/workspace/maps

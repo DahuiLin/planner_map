@@ -37,8 +37,8 @@ planner_map/
 │
 ├── Dockerfile.ros                   # ROS2 container
 ├── Dockerfile.web                   # Web container
-├── docker-compose.yml              # Production deployment
-├── docker-compose.dev.yml          # Development deployment
+├── docker compose.yml              # Production deployment
+├── docker compose.dev.yml          # Development deployment
 ├── Makefile                        # Common commands
 ├── start.sh                        # Quick start script
 ├── validate_structure.sh           # Structure validator
@@ -60,7 +60,7 @@ Follow the interactive menu.
 ### Method 2: Using Docker Compose
 ```bash
 # Build and start
-docker-compose up --build
+docker compose up --build
 
 # Access web interface
 # http://localhost:8000
@@ -203,7 +203,7 @@ Apache 2.0 - See [LICENSE](LICENSE)
 
 ### View logs
 ```bash
-docker-compose logs -f
+docker compose logs -f
 ```
 
 ### Access web interface
@@ -218,11 +218,11 @@ http://localhost:8000
 
 ### Stop the system
 ```bash
-docker-compose down
+docker compose down
 ```
 
 ---
 
 **Status**: ✅ Repository fully organized and ready to use!
 
-**Next**: Deploy with `docker-compose up --build` and access http://localhost:8000
+**Next**: Deploy with `docker compose up --build` and access http://localhost:8000

@@ -130,8 +130,8 @@ jobs:
 
             To deploy this version:
             ```bash
-            docker-compose pull
-            docker-compose up -d
+            docker compose pull
+            docker compose up -d
             ```
           draft: false
           prerelease: false

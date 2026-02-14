@@ -8,7 +8,7 @@
 [![GitHub stars](https://img.shields.io/github/stars/DahuiLin/planner_map)](https://github.com/DahuiLin/planner_map/stargazers)
 [![GitHub forks](https://img.shields.io/github/forks/DahuiLin/planner_map)](https://github.com/DahuiLin/planner_map/network)
 [![GitHub last commit](https://img.shields.io/github/last-commit/DahuiLin/planner_map)](https://github.com/DahuiLin/planner_map/commits)
-[![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](docker-compose.yml)
+[![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](docker compose.yml)
 [![ROS2](https://img.shields.io/badge/ROS2-Humble-blue.svg)](https://docs.ros.org/en/humble/)
 [![Python](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/)
 
@@ -64,7 +64,7 @@ planner_map/
 ├── config/                     # Configuración general
 ├── Dockerfile.ros             # Docker para ROS2
 ├── Dockerfile.web             # Docker para Web
-├── docker-compose.yml         # Orquestación de servicios
+├── docker compose.yml         # Orquestación de servicios
 ├── CONEXION.md                # Guía de conexión (Español)
 ├── CONNECTION_DIAGRAM.md      # Diagramas de conexión
 └── README.md                  # Este archivo
@@ -87,7 +87,7 @@ planner_map/
 
 2. **Construir y ejecutar los servicios**:
    ```bash
-   docker-compose up --build
+   docker compose up --build
    ```
 
 3. **Acceder a la interfaz web**:
@@ -109,13 +109,13 @@ planner_map/
 
 ```bash
 # Ver nodos ROS2 activos (debe incluir ros2_web_bridge)
-docker-compose exec ros2 ros2 node list
+docker compose exec ros2 ros2 node list
 
 # Ver topics (debe incluir /map, /goal_pose, /planned_path)
-docker-compose exec ros2 ros2 topic list
+docker compose exec ros2 ros2 topic list
 
 # Monitorear comunicación del bridge
-docker-compose logs -f ros2 | grep bridge
+docker compose logs -f ros2 | grep bridge
 ```
 
 ## 🛠️ Desarrollo Local
@@ -227,7 +227,7 @@ docker-compose logs -f ros2 | grep bridge
 
 3. **Configurar el mapa**:
    ```bash
-   # Edita docker-compose.yml para especificar tu archivo
+   # Edita docker compose.yml para especificar tu archivo
    ros2 launch planner_map planner_map.launch.py \
      osm_file:=/workspace/config/your_map.osm
    ```
@@ -249,7 +249,7 @@ docker-compose logs -f ros2 | grep bridge
 
 ### Variables de Entorno
 
-Editar `docker-compose.yml` para ajustar:
+Editar `docker compose.yml` para ajustar:
 
 ```yaml
 environment:
@@ -283,16 +283,16 @@ planner_node:
 ```bash
 # Verificar Docker
 docker --version
-docker-compose --version
+docker compose --version
 
 # Reiniciar servicios
-docker-compose down
-docker-compose up --build
+docker compose down
+docker compose up --build
 ```
 
 ### Puerto 8000 ocupado
 ```bash
-# Cambiar puerto en docker-compose.yml
+# Cambiar puerto en docker compose.yml
 ports:
   - "8001:8000"  # Usar 8001 en lugar de 8000
 ```
@@ -302,14 +302,14 @@ Si aparece el error `librmw_cyclonedds_cpp.so: cannot open shared object file`:
 
 **Solución 1 (Recomendada)**: Reconstruir la imagen Docker con las dependencias actualizadas:
 ```bash
-docker-compose down
-docker-compose build --no-cache ros2
-docker-compose up
+docker compose down
+docker compose build --no-cache ros2
+docker compose up
 ```
 
 **Solución 2 (Alternativa)**: Cambiar a FastRTPS (RMW por defecto en ROS2 Humble):
 ```yaml
-# En docker-compose.yml, cambiar:
+# En docker compose.yml, cambiar:
 environment:
   - RMW_IMPLEMENTATION=rmw_fastrtps_cpp  # En lugar de rmw_cyclonedds_cpp
 ```
@@ -317,13 +317,13 @@ environment:
 ### Logs de servicios
 ```bash
 # Ver logs de ROS2
-docker-compose logs ros2
+docker compose logs ros2
 
 # Ver logs de Web
-docker-compose logs web
+docker compose logs web
 
 # Seguir logs en tiempo real
-docker-compose logs -f
+docker compose logs -f
 ```
 
 ## 🚀 CI/CD
@@ -334,7 +334,7 @@ Este proyecto incluye flujos de trabajo automatizados de CI/CD usando GitHub Act
 
 Cada push y pull request ejecuta automáticamente:
 - ✅ Build de imágenes Docker (ROS2 y Web)
-- ✅ Validación de docker-compose.yml
+- ✅ Validación de docker compose.yml
 - ✅ Health checks de servicios
 - ✅ Tests de API endpoints
 - ✅ Verificación de nodos ROS2
@@ -354,10 +354,10 @@ Deployment automático mediante:
 python3 test_integration.py
 
 # Verificar configuración
-docker-compose config
+docker compose config
 
 # Ver estado de health checks
-docker-compose ps
+docker compose ps
 ```
 
 **📖 Ver [CI_CD.md](CI_CD.md) para documentación completa de CI/CD**

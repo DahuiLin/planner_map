@@ -44,7 +44,7 @@ web_interface/
 
 ```bash
 # Usar archivo de desarrollo
-docker-compose -f docker-compose.dev.yml up --build
+docker compose -f docker compose.dev.yml up --build
 
 # O usar el Makefile
 make dev

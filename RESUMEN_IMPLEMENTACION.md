@@ -247,10 +247,10 @@ ros2_ws/requirements.txt                                   (+ scipy)
 
 ```bash
 # Construir contenedores Docker
-docker-compose build
+docker compose build
 
 # Iniciar servicios
-docker-compose up
+docker compose up
 ```
 
 ### 2. Acceder a Interfaz Web

@@ -190,7 +190,7 @@ Renders on canvas
 
 ### Development
 ```bash
-docker-compose -f docker-compose.dev.yml up
+docker compose -f docker compose.dev.yml up
 ```
 - Hot reload enabled
 - Volume mounts for live editing
@@ -198,7 +198,7 @@ docker-compose -f docker-compose.dev.yml up
 
 ### Production
 ```bash
-docker-compose up -d
+docker compose up -d
 ```
 - Optimized builds
 - Restart policies

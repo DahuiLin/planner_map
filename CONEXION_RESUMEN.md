@@ -93,7 +93,7 @@ La interfaz web y ROS2 se comunican a través de un **nodo puente** llamado `ros
 
 ### 1. Iniciar el Sistema
 ```bash
-docker-compose up --build
+docker compose up --build
 ```
 
 ### 2. Abrir el Navegador
@@ -109,7 +109,7 @@ http://localhost:8000
 En otra terminal:
 ```bash
 # Ver logs del bridge
-docker-compose logs -f ros2 | grep bridge
+docker compose logs -f ros2 | grep bridge
 
 # Deberías ver algo como:
 # [ros2_web_bridge]: Published new goal from web: x=1.50, y=2.30
@@ -117,7 +117,7 @@ docker-compose logs -f ros2 | grep bridge
 
 ### 5. Verificar Topics ROS2
 ```bash
-docker-compose exec ros2 ros2 topic echo /goal_pose
+docker compose exec ros2 ros2 topic echo /goal_pose
 ```
 
 ## Archivos Importantes
