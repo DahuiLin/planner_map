@@ -41,4 +41,4 @@ COPY docker/ros_entrypoint.sh /ros_entrypoint.sh
 RUN chmod +x /ros_entrypoint.sh
 
 ENTRYPOINT ["/ros_entrypoint.sh"]
-CMD ["ros2", "launch", "planner_map", "planner_map.launch.py"]
+CMD ["ros2", "launch", "planner_map", "planner_map.launch.py", "osm_file:=/workspace/config/sample_map.osm"]

@@ -226,10 +226,29 @@ docker compose logs -f ros2 | grep bridge
    - **📖 Ver [GUIA_MAPAS_PERSONALIZADOS.md](GUIA_MAPAS_PERSONALIZADOS.md) para crear tu propio mapa**
 
 3. **Configurar el mapa**:
+
+   **Opción 1 - Usando archivo .env (Recomendado)**:
    ```bash
-   # Edita docker compose.yml para especificar tu archivo
-   ros2 launch planner_map planner_map.launch.py \
-     osm_file:=/workspace/config/your_map.osm
+   # Copiar el archivo de ejemplo
+   cp config/example.env .env
+
+   # Editar .env y cambiar la línea OSM_FILE:
+   # OSM_FILE=/workspace/config/your_map.osm
+
+   # Iniciar el sistema
+   docker compose up
+   ```
+
+   **Opción 2 - Variable de entorno directa**:
+   ```bash
+   # Especificar el mapa al iniciar
+   OSM_FILE=/workspace/config/dekra.osm docker compose up
+   ```
+
+   **Opción 3 - Editar docker-compose.yml**:
+   ```yaml
+   environment:
+     - OSM_FILE=/workspace/config/your_map.osm
    ```
 
 4. **Seleccionar destino**:
