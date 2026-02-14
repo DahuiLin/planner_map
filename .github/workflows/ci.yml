@@ -57,28 +57,28 @@ jobs:
 
       - name: Start services with Docker Compose
         run: |
-          docker-compose up -d
+          docker compose up -d
           echo "Waiting for services to start..."
           sleep 20
 
       - name: Check service health
         run: |
           echo "=== Docker Compose Status ==="
-          docker-compose ps
+          docker compose ps
 
           echo -e "\n=== ROS2 Container Logs ==="
-          docker-compose logs ros2 | tail -50
+          docker compose logs ros2 | tail -50
 
           echo -e "\n=== Web Container Logs ==="
-          docker-compose logs web | tail -50
+          docker compose logs web | tail -50
 
           echo -e "\n=== Checking if containers are running ==="
-          if [ "$(docker-compose ps -q ros2 | wc -l)" -eq "0" ]; then
+          if [ "$(docker compose ps -q ros2 | wc -l)" -eq "0" ]; then
             echo "ERROR: ROS2 container is not running"
             exit 1
           fi
 
-          if [ "$(docker-compose ps -q web | wc -l)" -eq "0" ]; then
+          if [ "$(docker compose ps -q web | wc -l)" -eq "0" ]; then
             echo "ERROR: Web container is not running"
             exit 1
           fi
@@ -104,23 +104,23 @@ jobs:
 
           if [ $retry_count -eq $max_retries ]; then
             echo "ERROR: Web API failed to respond after $max_retries attempts"
-            docker-compose logs web
+            docker compose logs web
             exit 1
           fi
 
       - name: Test ROS2 nodes
         run: |
           echo "Checking ROS2 nodes..."
-          docker-compose exec -T ros2 bash -c "source /opt/ros/humble/setup.bash && source /workspace/ros2_ws/install/setup.bash && ros2 node list" || echo "ROS2 node list failed, continuing..."
+          docker compose exec -T ros2 bash -c "source /opt/ros/humble/setup.bash && source /workspace/ros2_ws/install/setup.bash && ros2 node list" || echo "ROS2 node list failed, continuing..."
 
           echo -e "\nChecking ROS2 topics..."
-          docker-compose exec -T ros2 bash -c "source /opt/ros/humble/setup.bash && source /workspace/ros2_ws/install/setup.bash && ros2 topic list" || echo "ROS2 topic list failed, continuing..."
+          docker compose exec -T ros2 bash -c "source /opt/ros/humble/setup.bash && source /workspace/ros2_ws/install/setup.bash && ros2 topic list" || echo "ROS2 topic list failed, continuing..."
 
       - name: Run Python tests if they exist
         run: |
           if [ -f "test_spline_trajectory.py" ]; then
             echo "Running Python tests..."
-            docker-compose exec -T ros2 python3 /workspace/test_spline_trajectory.py || echo "Tests failed but continuing..."
+            docker compose exec -T ros2 python3 /workspace/test_spline_trajectory.py || echo "Tests failed but continuing..."
           else
             echo "No test_spline_trajectory.py found, skipping..."
           fi
@@ -137,19 +137,19 @@ jobs:
         if: failure()
         run: |
           echo "=== Full ROS2 Logs ==="
-          docker-compose logs ros2
+          docker compose logs ros2
 
           echo -e "\n=== Full Web Logs ==="
-          docker-compose logs web
+          docker compose logs web
 
           echo -e "\n=== Docker System Info ==="
           docker system df
-          docker-compose ps -a
+          docker compose ps -a
 
       - name: Stop services
         if: always()
         run: |
-          docker-compose down -v
+          docker compose down -v
 
   lint-check:
     name: Lint and Code Quality
@@ -198,7 +198,7 @@ jobs:
 
       - name: Validate docker-compose.yml
         run: |
-          docker-compose config
+          docker compose config
 
       - name: Check for required files
         run: |
