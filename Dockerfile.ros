@@ -10,6 +10,7 @@ RUN apt-get update && apt-get install -y \
     python3-colcon-common-extensions \
     ros-humble-navigation2 \
     ros-humble-nav2-bringup \
+    ros-humble-lanelet2 \
     libboost-all-dev \
     libeigen3-dev \
     libgeographic-dev \
@@ -18,15 +19,6 @@ RUN apt-get update && apt-get install -y \
     python3-dev \
     git \
     && rm -rf /var/lib/apt/lists/*
-
-# Install lanelet2 from source
-RUN mkdir -p /tmp/lanelet2_ws/src && cd /tmp/lanelet2_ws/src && \
-    git clone https://github.com/fzi-forschungszentrum-informatik/lanelet2.git && \
-    cd /tmp/lanelet2_ws && \
-    . /opt/ros/humble/setup.sh && \
-    colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release && \
-    echo "source /tmp/lanelet2_ws/install/setup.bash" >> ~/.bashrc && \
-    rm -rf /tmp/lanelet2_ws/build /tmp/lanelet2_ws/log
 
 # Copy ROS2 workspace
 COPY ros2_ws /workspace/ros2_ws
