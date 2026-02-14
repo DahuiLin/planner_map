@@ -211,41 +211,50 @@ mv mapping_example.osm mi_mapa_ejemplo.osm
 cp mi_mapa_personalizado.osm /home/runner/work/planner_map/planner_map/config/
 ```
 
-### 2. Configurar Docker Compose
+### 2. Configurar el Sistema
 
-Editar `docker compose.yml`:
+**Opción 1 - Usando archivo .env (Recomendado)**:
+
+```bash
+# Copiar el archivo de ejemplo
+cp config/example.env .env
+
+# Editar .env y cambiar la línea OSM_FILE:
+# OSM_FILE=/workspace/config/mi_mapa_personalizado.osm
+
+# Iniciar el sistema
+docker compose up --build
+```
+
+**Opción 2 - Variable de entorno directa**:
+
+```bash
+# Especificar el mapa al iniciar
+OSM_FILE=/workspace/config/mi_mapa_personalizado.osm docker compose up --build
+```
+
+**Opción 3 - Editar docker-compose.yml**:
+
+Editar `docker-compose.yml`:
 
 ```yaml
 services:
   ros2:
     # ... otras configuraciones ...
-    command: >
-      bash -c "
-        source /opt/ros/humble/setup.bash &&
-        source /tmp/lanelet2_ws/install/setup.bash &&
-        source /workspace/ros2_ws/install/setup.bash &&
-        ros2 launch planner_map planner_map.launch.py
-        osm_file:=/workspace/config/mi_mapa_personalizado.osm
-      "
+    environment:
+      - ROS_DOMAIN_ID=0
+      - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+      - OSM_FILE=/workspace/config/mi_mapa_personalizado.osm
 ```
 
-### 3. Configurar Launch File (Alternativa)
+### 3. Verificar la Configuración
 
-Editar `ros2_ws/src/planner_map/launch/planner_map.launch.py`:
+```bash
+# Ver el valor de la variable de entorno
+docker compose config | grep OSM_FILE
 
-```python
-def generate_launch_description():
-    return LaunchDescription([
-        Node(
-            package='planner_map',
-            executable='map_server',
-            parameters=[{
-                'osm_file': '/workspace/config/mi_mapa_personalizado.osm',
-                'publish_rate': 1.0
-            }]
-        ),
-        # ... otros nodos ...
-    ])
+# Debería mostrar:
+# OSM_FILE: /workspace/config/mi_mapa_personalizado.osm
 ```
 
 ## ✅ Verificar que el Mapa Funciona
@@ -450,7 +459,12 @@ Para cargar un mapa personalizado:
 
 1. **Crear/obtener mapa Lanelet2** (OSM con tags específicos)
 2. **Colocar en** `config/mi_mapa.osm`
-3. **Configurar** en `docker compose.yml` o launch file
+3. **Configurar usando .env**:
+   ```bash
+   cp config/example.env .env
+   # Editar .env: OSM_FILE=/workspace/config/mi_mapa.osm
+   docker compose up
+   ```
 4. **Publicar GPS** dentro del área del mapa
 5. **Verificar** logs y metadatos
 6. **Probar** enrutamiento en web interface
