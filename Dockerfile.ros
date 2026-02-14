@@ -11,6 +11,7 @@ RUN apt-get update && apt-get install -y \
     ros-humble-navigation2 \
     ros-humble-nav2-bringup \
     ros-humble-lanelet2 \
+    ros-humble-rmw-cyclonedds-cpp \
     libboost-all-dev \
     libeigen3-dev \
     libgeographic-dev \
