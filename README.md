@@ -1,7 +1,16 @@
 # Planner Map - ROS2 + FastAPI + Docker + Lanelet2
 
-![CI - Build and Test](https://github.com/DahuiLin/planner_map/workflows/CI%20-%20Build%20and%20Test/badge.svg)
-![Deploy to Production](https://github.com/DahuiLin/planner_map/workflows/Deploy%20to%20Production/badge.svg)
+<!-- Status Badges -->
+[![CI - Build and Test](https://github.com/DahuiLin/planner_map/workflows/CI%20-%20Build%20and%20Test/badge.svg)](https://github.com/DahuiLin/planner_map/actions/workflows/ci.yml)
+[![Deploy to Production](https://github.com/DahuiLin/planner_map/workflows/Deploy%20to%20Production/badge.svg)](https://github.com/DahuiLin/planner_map/actions/workflows/deploy.yml)
+[![License](https://img.shields.io/github/license/DahuiLin/planner_map)](LICENSE)
+[![GitHub issues](https://img.shields.io/github/issues/DahuiLin/planner_map)](https://github.com/DahuiLin/planner_map/issues)
+[![GitHub stars](https://img.shields.io/github/stars/DahuiLin/planner_map)](https://github.com/DahuiLin/planner_map/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/DahuiLin/planner_map)](https://github.com/DahuiLin/planner_map/network)
+[![GitHub last commit](https://img.shields.io/github/last-commit/DahuiLin/planner_map)](https://github.com/DahuiLin/planner_map/commits)
+[![Docker](https://img.shields.io/badge/docker-ready-blue.svg)](docker-compose.yml)
+[![ROS2](https://img.shields.io/badge/ROS2-Humble-blue.svg)](https://docs.ros.org/en/humble/)
+[![Python](https://img.shields.io/badge/python-3.11-blue.svg)](https://www.python.org/)
 
 Sistema de planificación y mapeo integrado con ROS2, interfaz web FastAPI, soporte para mapas Lanelet2 y despliegue automatizado con Docker Compose.
 
