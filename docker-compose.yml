@@ -15,6 +15,12 @@ services:
       - ./ros2_ws:/workspace/ros2_ws
       - ./config:/workspace/config
     restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "source /opt/ros/humble/setup.bash && source /workspace/ros2_ws/install/setup.bash && ros2 node list | grep -q planner || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   web:
     build:
@@ -31,7 +37,14 @@ services:
       - ./web_interface:/app
     restart: unless-stopped
     depends_on:
-      - ros2
+      ros2:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/api/status || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
 
 networks:
   planner_network:
