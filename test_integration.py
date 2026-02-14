@@ -7,7 +7,6 @@ Tests the interaction between ROS2 nodes and the web interface.
 import sys
 import time
 import requests
-import json
 
 
 def test_web_api_status():
@@ -49,9 +48,10 @@ def test_web_api_goal():
     print("\nTesting Web API goal endpoint...")
     try:
         goal_data = {
-            "x": 10.0,
-            "y": 10.0,
-            "theta": 0.0
+            "pose": {
+                "position": {"x": 10.0, "y": 10.0, "z": 0.0},
+                "orientation": {"x": 0.0, "y": 0.0, "z": 0.0, "w": 1.0}
+            }
         }
         response = requests.post(
             "http://localhost:8000/api/goal",
@@ -116,7 +116,7 @@ def main():
             if response.status_code == 200:
                 print("Services are ready!")
                 break
-        except:
+        except Exception:
             pass
 
         if i == max_retries - 1:

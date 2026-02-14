@@ -328,10 +328,10 @@ Deployment automático mediante:
 python3 test_integration.py
 
 # Verificar configuración
-docker compose config
+docker-compose config
 
 # Ver estado de health checks
-docker compose ps
+docker-compose ps
 ```
 
 **📖 Ver [CI_CD.md](CI_CD.md) para documentación completa de CI/CD**
